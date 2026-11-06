@@ -50,6 +50,7 @@ export const set_run_seed_roguelike: (a: number) => void;
 export const set_start_depth_roguelike: (a: number) => void;
 export const start_game_roguelike: () => void;
 export const tick_roguelike: (a: number) => void;
+export const travel_mindzj_scene: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
 export const unequip_accessory_roguelike: () => void;
 export const unequip_armor_roguelike: () => void;
 export const unequip_weapon_roguelike: () => void;

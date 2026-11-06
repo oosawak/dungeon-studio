@@ -1092,7 +1092,7 @@ body.controls-swapped #movement-joystick {
 
 </head>
 <body>
-<div id="mindzj-import-bar"><a href="index.html" id="mindzj-edit">← マップ編集</a><a href="credits.html">Credits</a><button id="mindzj-load">Markdownを開く</button><button id="mindzj-retry">シーンを再開</button><span id="mindzj-status" role="status">シーン読込待ち</span><span id="mindzj-note" hidden></span><input id="mindzj-file" type="file" accept=".md,.markdown,.json" hidden></div>
+<div id="mindzj-import-bar"><a href="index.html" id="mindzj-edit">← マップ編集</a><a href="credits.html">Credits</a><button id="mindzj-load">Markdownを開く</button><button id="mindzj-enter" hidden>入る [E]</button><button id="mindzj-return" hidden>前の場所へ戻る</button><button id="mindzj-retry">シーンを再開</button><span id="mindzj-status" role="status">シーン読込待ち</span><span id="mindzj-note" hidden></span><input id="mindzj-file" type="file" accept=".md,.markdown,.json" hidden></div>
 <style>#mindzj-import-bar{position:fixed;bottom:8px;left:8px;right:8px;z-index:2500;display:flex;gap:8px;align-items:center;padding:8px;background:#102430f2;border:1px solid #37616d;border-radius:8px;font:12px sans-serif}#mindzj-import-bar a{color:#b9e8df}#mindzj-import-bar button{font-family:GenInterfaceJP,sans-serif;cursor:pointer;padding:6px 10px;color:#e6f8ff;background:#264956;border:1px solid #59818a;border-radius:4px}#mindzj-import-bar{font-family:GenInterfaceJP,sans-serif;flex-wrap:wrap}#mindzj-note{flex-basis:100%;max-height:70px;overflow:auto;white-space:pre-wrap;color:#f2d9a7}#tiny-toggle{right:186px!important}#no-damage-quick-toggle{right:66px!important}#mindzj-status{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}</style>
 
 <div style="position: absolute; left: -9999px; font-family: RPGAwesome; font-size: 1px;">
@@ -1322,7 +1322,8 @@ body.controls-swapped #movement-joystick {
 import init, * as wasm from './wasm/wasm_dungeonload.js?canvas-scale=1&ui=32&pit=10';
 import { FontLoader, InputManager } from './engine.js';
 import { createDungeonLoadUi } from './ui.js?overlay=16';
-import { readScene, toRuntime, getFloor } from './scene-format.js';
+import { readScene, toRuntime, getFloor, locationScene, validateConnections } from './scene-format.js';
+import {pathToPlace} from './campaign.js';
 window.wasm = wasm;
 const ui = createDungeonLoadUi({ wasm });
 
@@ -1689,7 +1690,7 @@ async function start() {
     document.getElementById('party-battle-leave').addEventListener('click', leavePartyDungeon);
 
     document.getElementById('btn-retry').addEventListener('click', () => {
-      if(importedScene){activateMindzjScene(importedScene);return;}
+      if(campaignRoot){activateMindzjScene(campaignRoot);return;}
       document.getElementById('game-over').style.display = 'none';
       document.getElementById('game-over').classList.remove('victory');
       document.getElementById('mobile-action-pad').style.display = 'none';
@@ -2033,6 +2034,9 @@ function renderTinyDungeon() {
         drawTinyTile(ctx, tileIds.stairsDown, drawX, drawY, cell);
       } else if (tile === 4) {
         drawTinyTile(ctx, tileIds.stairsUp, drawX, drawY, cell);
+      } else if(tile>=10){
+        ctx.fillStyle=({10:'#68945c',11:'#355d35',12:'#29668c',13:'#797d78',14:'#b19a73',16:'#a47c56'})[tile]||'#446688';ctx.fillRect(drawX,drawY,cell,cell);
+        if(tile===16){ctx.fillStyle='#fff0b0';ctx.font=(cell*.45)+'px sans-serif';ctx.fillText('IN',drawX+2,drawY+cell*.6);}
       } else if (tile===7||tile===8||tile===9) {
         ctx.fillStyle=tile===7?'#a46a32':tile===8?'#547b54':'#705c19';ctx.fillRect(drawX,drawY,cell,cell);ctx.fillStyle='#fff0b0';ctx.font=Math.max(9,cell*.25)+'px sans-serif';ctx.fillText(tile===9?'KEY':tile===7?'LOCK':'OPEN',drawX+2,drawY+cell*.6);
       } else if (tile === 5 || tile === 6) {
@@ -2236,6 +2240,12 @@ function updateDungeon3d() {
       else if(tile===7){color=0xa46a32;h=1.6;}
       else if(tile===8){color=0x547b54;h=0.2;}
       else if(tile===9){color=0x446688;h=0.2;}
+      else if(tile===10){color=0x68945c;h=0.16;}
+      else if(tile===11){color=0x355d35;h=0.45;}
+      else if(tile===12){color=0x29668c;h=0.05;}
+      else if(tile===13){color=0x797d78;h=1.8;}
+      else if(tile===14){color=0xb19a73;h=0.17;}
+      else if(tile===16){color=0xa47c56;h=1.6;}
       if (tile === 5 || tile === 6) {
         const holeColor = tile === 6 ? 0x001820 : 0x020205;
         const shaft = new THREE.Mesh(
@@ -2301,6 +2311,14 @@ function updateDungeon3d() {
       scene.add(cube);
       cubes.push(cube);
 
+      if(tile===16){
+        const f=importedScene?getFloor(importedScene,wasm.depth_roguelike()-1):null;
+        const portal=f?.entities.find(e=>e.kind==='portal'&&e.x===x&&e.y===y);
+        const roof=new THREE.Mesh(new THREE.ConeGeometry(0.8,0.65,4),new THREE.MeshLambertMaterial({color:portal?.style==='house'?0x9d493c:portal?.style==='town'?0x527aac:0x4b565d}));
+        roof.rotation.y=Math.PI/4;roof.position.set(x,1.92,y);scene.add(roof);cubes.push(roof);
+        const label=createLabelSprite((ctx,w,h)=>{ctx.font='bold 20px GenInterfaceJP,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff0b0';ctx.fillText(portal?.label||'ENTER',w/2,h/2);},1.5,0.3);
+        label.position.set(x,2.5,y);scene.add(label);worldIconSprites.push(label);
+      }
       if(tile===7||tile===8||tile===9){
         const word=tile===7?'LOCK':tile===8?'OPEN':'KEY';
         const label=createLabelSprite((ctx,w,h)=>{ctx.font='bold 22px monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#ffda70';ctx.fillText(word,w/2,h/2);},0.85,0.3);
@@ -2689,11 +2707,13 @@ function renderCanvas() {
   wasm.render_roguelike('game-canvas', Math.round(width * pixelRatio), Math.round(height * pixelRatio));
 }
 
-let importedScene = null;
+let importedScene=null,campaignRoot=null,currentPlaceId='root',travelHistory=[];
 function activateMindzjScene(doc) {
-  const runtime=toRuntime(doc);
-  wasm.load_mindzj_scene(JSON.stringify(runtime));
-  importedScene=doc;
+  campaignRoot=validateConnections(doc);
+  currentPlaceId=doc.startLocation||'root';
+  importedScene=locationScene(campaignRoot,currentPlaceId);
+  travelHistory=pathToPlace(campaignRoot,currentPlaceId).slice(0,-1);
+  wasm.load_mindzj_scene(JSON.stringify(toRuntime(importedScene)));
   partyBattleActive=false;
   document.getElementById('title-screen').style.display='none';
   document.getElementById('town-screen').classList.remove('active');
@@ -2703,7 +2723,7 @@ function activateMindzjScene(doc) {
   for(const id of ['game-info-panel','attack-button','jump-button','weapon-prev-button','weapon-next-button']) document.getElementById(id).style.display='block';
   document.getElementById('nav-bar').style.display='flex';
   document.getElementById('mindzj-status').textContent=doc.title+' — '+doc.width+'×'+doc.height+' / 2D・3D共通';
-  document.getElementById('mindzj-edit').href='index.html#scene='+encodeURIComponent(JSON.stringify(doc));
+  document.getElementById('mindzj-edit').href=(importedScene.mapKind==='town'?'town.html':importedScene.mapKind==='world'?'world.html':'index.html')+'#scene='+encodeURIComponent(JSON.stringify(campaignRoot));
 }
 function updateMindzjNote(){
   if(!importedScene)return;
@@ -2714,16 +2734,40 @@ function updateMindzjNote(){
   const panel=document.getElementById('mindzj-note');
   panel.hidden=!notes.length;
   panel.textContent=notes.map(e=>'▤ '+e.text).join('\n');
+  const near=floor.entities.find(e=>e.kind==='portal'&&Math.abs(e.x-x)+Math.abs(e.y-y)<=1);
+  const enter=document.getElementById('mindzj-enter');enter.hidden=!near||wasm.scene_roguelike()!==1;
+  if(near)enter.textContent=near.label+' [E]';
+  document.getElementById('mindzj-return').hidden=!travelHistory.length||wasm.scene_roguelike()!==1;
+}
+function travelToPlace(target,returning=false){
+  try{
+    if(target==='$return'){if(!travelHistory.length)throw Error('入ってきた場所がありません。');target=travelHistory.at(-1);returning=true;}
+    const scene=locationScene(campaignRoot,target);
+    wasm.travel_mindzj_scene(currentPlaceId,target,JSON.stringify(toRuntime(scene)));
+    if(returning)travelHistory.pop();else travelHistory.push(currentPlaceId);
+    currentPlaceId=target;importedScene=scene;
+    document.getElementById('mindzj-edit').href=(scene.mapKind==='town'?'town.html':scene.mapKind==='world'?'world.html':'index.html')+'#scene='+encodeURIComponent(JSON.stringify(campaignRoot));
+  }catch(error){document.getElementById('mindzj-status').textContent=error.message;}
+}
+function enterNearbyPlace(){
+  if(!importedScene)return;
+  const f=getFloor(importedScene,wasm.depth_roguelike()-1),x=wasm.player_x_roguelike(),y=wasm.player_y_roguelike();
+  const portal=f.entities.find(e=>e.kind==='portal'&&Math.abs(e.x-x)+Math.abs(e.y-y)<=1);
+  if(portal)travelToPlace(portal.target);
 }
 async function initializeMindzjImport() {
   const status=document.getElementById('mindzj-status');
+  document.getElementById('mindzj-enter').onclick=enterNearbyPlace;
+  document.getElementById('mindzj-return').onclick=()=>travelToPlace('$return');
+  document.addEventListener('keydown',event=>{if(event.code==='KeyE'&&!['INPUT','TEXTAREA','SELECT'].includes(event.target.tagName)){event.preventDefault();enterNearbyPlace();}});
+  window.mindzjTravelTo=travelToPlace;
   document.getElementById('mindzj-load').onclick=()=>document.getElementById('mindzj-file').click();
   document.getElementById('mindzj-file').onchange=async event=>{
     const file=event.target.files[0];event.target.value='';if(!file)return;
     try{if(file.size>2_000_000)throw Error('2MB以内のファイルを選んでください。');activateMindzjScene(readScene(await file.text()));}
     catch(error){status.textContent=error.message;}
   };
-  document.getElementById('mindzj-retry').onclick=()=>{if(importedScene)activateMindzjScene(importedScene);};
+  document.getElementById('mindzj-retry').onclick=()=>{if(campaignRoot)activateMindzjScene(campaignRoot);};
   window.mindzjImportScene=activateMindzjScene;
   try {
     let text;

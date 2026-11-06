@@ -27,3 +27,15 @@ test('invalid geometry, entities and disconnected exits are rejected',()=>{
  for(const [dx,dy]of [[1,0],[-1,0],[0,1],[0,-1]]){const row=[...c.cells[exit.y+dy]];row[exit.x+dx]='#';c.cells[exit.y+dy]=row.join('');}
  c.entities=c.entities.filter(e=>e.kind==='spawn'||e.kind==='exit');assert.throws(()=>toRuntime(c),/到達/);
 });
+
+test('world/town/interior graph survives Markdown and has valid destinations',async()=>{
+ const {createCampaign,createPlace,placeEntrance,pathToPlace}=await import('../campaign.js');
+ const {validateConnections,locationScene}=await import('../scene-format.js');
+ const world=validateConnections(createCampaign(42));
+ assert.equal(world.mapKind,'world');assert.equal(world.linkedMaps.length,5);
+ assert.deepEqual(readScene(writeScene(world)),world);
+ for(const entry of world.linkedMaps)assert.ok(toRuntime(entry.scene).tiles.length>0);
+ assert.deepEqual(pathToPlace(world,'house'),['root','town','house']);
+ assert.equal(locationScene(world,'town').mapKind,'town');
+ const town=createPlace('town');town.entities=town.entities.filter(e=>e.kind!=='exit');placeEntrance(town,'missing','未接続');assert.throws(()=>validateConnections(town),/移動先/);
+});

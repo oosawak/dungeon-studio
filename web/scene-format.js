@@ -1,25 +1,35 @@
 // Original MindZJ scene format. No third-party editor code or schema.
 export const FORMAT = 'mindzj-dungeon-scene';
-export function validateScene(value, nested=false) {
+export function validateScene(value, nested=false, linked=false) {
   const d = structuredClone(value);
   if (!d || d.format !== FORMAT || d.version !== 1) throw Error('MindZJ Dungeon Scene v1 のファイルを選んでください。');
   if (!Number.isInteger(d.width) || !Number.isInteger(d.height) || d.width < 5 || d.width > 160 || d.height < 5 || d.height > 120) throw Error('サイズは5〜160列、5〜120行です。');
-  if (typeof d.title !== 'string' || d.title.length > 120 || !Array.isArray(d.cells) || d.cells.length !== d.height || d.cells.some(r => typeof r !== 'string' || r.length !== d.width || /[^#.+O<>]/.test(r))) throw Error('タイトルかマップのデータが不正です。');
+  if (typeof d.title !== 'string' || d.title.length > 120 || !Array.isArray(d.cells) || d.cells.length !== d.height || d.cells.some(r => typeof r !== 'string' || r.length !== d.width || /[^#.+O<>gf~^=]/.test(r))) throw Error('タイトルかマップのデータが不正です。');
   if (!Array.isArray(d.entities) || d.entities.length > 256) throw Error('配置物が多すぎます。');
   d.initialKeys ??= 3;
   if(!Number.isInteger(d.initialKeys)||d.initialKeys<0||d.initialKeys>99)throw Error('開始時の鍵は0〜99個です。');
   d.lowerFloors ??= [];
   if(!Array.isArray(d.lowerFloors)||d.lowerFloors.length>9||(nested&&d.lowerFloors.length))throw Error('フロアは合計10階までです。');
   d.lowerFloors=d.lowerFloors.map(f=>validateScene(f,true));
+  d.mapKind ??= 'dungeon';
+  if(!['dungeon','world','town','interior'].includes(d.mapKind))throw Error('マップ種別が不正です。');
+  d.linkedMaps ??= [];
+  if(!Array.isArray(d.linkedMaps)||d.linkedMaps.length>31||((nested||linked)&&d.linkedMaps.length))throw Error('接続マップは31件までです。');
+  const ids=new Set(['root']);
+  d.linkedMaps=d.linkedMaps.map(entry=>{
+    if(!entry||typeof entry.id!=='string'||!/^[a-zA-Z0-9_-]{1,60}$/.test(entry.id)||ids.has(entry.id))throw Error('場所IDが不正か重複しています。');
+    ids.add(entry.id);return {id:entry.id,scene:validateScene(entry.scene,false,true)};
+  });
   const occupied = new Set();
   for (const e of d.entities) {
-    if (!e || !['spawn','exit','enemy','note','key'].includes(e.kind) || !Number.isInteger(e.x) || !Number.isInteger(e.y) || e.x < 1 || e.y < 1 || e.x >= d.width-1 || e.y >= d.height-1 || d.cells[e.y][e.x] !== '.') throw Error('配置物は外周以外の床に置いてください。');
+    if (!e || !['spawn','exit','enemy','note','key','portal'].includes(e.kind) || !Number.isInteger(e.x) || !Number.isInteger(e.y) || e.x < 1 || e.y < 1 || e.x >= d.width-1 || e.y >= d.height-1 || !['.','g','f','='].includes(d.cells[e.y][e.x])) throw Error('配置物は外周以外の床に置いてください。');
     const key=e.x+','+e.y;
     if(occupied.has(key)) throw Error('同じマスに複数の配置物があります。');
     occupied.add(key);
+    if(e.kind==='portal'&&(typeof e.target!=='string'||e.target.length>60||typeof e.label!=='string'||e.label.length>120))throw Error('入口の行き先・名前が不正です。');
     if (e.kind === 'note' && (typeof e.text !== 'string' || e.text.length > 2000)) throw Error('メモは2000文字以内です。');
   }
-  if (d.entities.filter(e=>e.kind==='spawn').length !== 1 || d.entities.filter(e=>e.kind==='exit').length !== 1) throw Error('開始地点と出口を1つずつ置いてください。');
+  if (d.entities.filter(e=>e.kind==='spawn').length !== 1 || (d.entities.filter(e=>e.kind==='exit').length > 1 || (!d.entities.some(e=>e.kind==='exit')&&!d.entities.some(e=>e.kind==='portal')))) throw Error('開始地点と出口を1つずつ置いてください。');
   if (d.entities.filter(e=>e.kind==='enemy').length > 64) throw Error('敵は64体までです。');
   for (let y=0;y<d.height;y++)for(let x=0;x<d.width;x++)if((x===0||y===0||x===d.width-1||y===d.height-1)&&d.cells[y][x]!=='#')throw Error('外周は壁にしてください。');
   return d;
@@ -47,7 +57,7 @@ export function reachableCells(d) {
   const seen=new Set([spawn.y*d.width+spawn.x]),queue=[[spawn.x,spawn.y]];
   for(let i=0;i<queue.length;i++)for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
     const x=queue[i][0]+dx,y=queue[i][1]+dy,key=y*d.width+x;
-    if(x>=0&&y>=0&&x<d.width&&y<d.height&&d.cells[y][x]!=='#'&&d.cells[y][x]!=='O'&&!seen.has(key)){seen.add(key);queue.push([x,y]);}
+    if(x>=0&&y>=0&&x<d.width&&y<d.height&&!['#','O','~','^'].includes(d.cells[y][x])&&!seen.has(key)){seen.add(key);queue.push([x,y]);}
   }
   return seen;
 }
@@ -55,10 +65,11 @@ export function toRuntime(value) {
   const d=validateScene(value);
   const convert=f=>{
     const spawn=f.entities.find(e=>e.kind==='spawn'),exit=f.entities.find(e=>e.kind==='exit');
-    if(!reachableCells(f).has(exit.y*f.width+exit.x))throw Error(f.title+'：開始地点から出口に到達できません。');
-    const codes={'#':1,'.':0,'+':7,'O':5,'>':3,'<':4};
+    if(exit&&!reachableCells(f).has(exit.y*f.width+exit.x))throw Error(f.title+'：開始地点から出口に到達できません。');
+    const codes={'#':1,'.':0,'+':7,'O':5,'>':3,'<':4,'g':10,'f':11,'~':12,'^':13,'=':14};
     const tiles=f.cells.join('').split('').map(c=>codes[c]);
-    tiles[exit.y*f.width+exit.x]=6;
+    if(exit)tiles[exit.y*f.width+exit.x]=6;
+    for(const e of f.entities.filter(e=>e.kind==='portal'))tiles[e.y*f.width+e.x]=16;
     for(const e of f.entities.filter(e=>e.kind==='key'))tiles[e.y*f.width+e.x]=9;
     return {width:f.width,height:f.height,tiles,spawn:[spawn.x,spawn.y],enemies:f.entities.filter(e=>e.kind==='enemy').map(e=>[e.x,e.y])};
   };
@@ -108,4 +119,17 @@ export function replaceSceneBlock(original,doc) {
     return lines.join('\n');
   }
   throw Error('シーンブロックがありません。');
+}
+
+export function locationScene(project,id='root') {
+  if(id==='root')return project;
+  const found=project.linkedMaps?.find(entry=>entry.id===id);
+  if(!found)throw Error('移動先のマップがありません: '+id);
+  return found.scene;
+}
+export function validateConnections(project){
+  const root=validateScene(project),ids=new Set(['root',...root.linkedMaps.map(e=>e.id)]);
+  if(root.startLocation&&!ids.has(root.startLocation))throw Error('開始する場所がありません。');
+  for(const scene of [root,...root.linkedMaps.map(e=>e.scene)])for(const floor of [scene,...scene.lowerFloors])for(const portal of floor.entities.filter(e=>e.kind==='portal'))if(portal.target!=='$return'&&!ids.has(portal.target))throw Error('入口の移動先がありません: '+portal.target);
+  return root;
 }

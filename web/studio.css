@@ -2,3 +2,7 @@
 @font-face{font-family:GenInterfaceJP;src:url('./fonts/GenInterfaceJP-Regular.ttf') format('truetype');font-display:swap}:root{font-family:GenInterfaceJP,system-ui,sans-serif}
 
 select{width:100%;padding:9px;border:1px solid #38515a;border-radius:5px;background:#0b171e;color:#e2ece9;font:inherit}#add-floor{width:100%;margin:8px 0 14px;font-size:12px}
+
+.studio-nav{display:flex;gap:12px}.studio-nav a{color:#b0e5b7;text-decoration:none;font-size:12px}#add-house,#campaign-demo,#update-portal{width:100%;font-size:12px;margin-top:8px}@media(max-width:760px){.studio-nav{margin-left:auto}}
+
+#tools button[hidden]{display:none}aside details{margin-top:16px}aside details summary{font-size:12px;font-weight:600;color:#bdd6cc}

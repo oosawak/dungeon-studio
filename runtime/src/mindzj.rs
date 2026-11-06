@@ -15,8 +15,8 @@ struct ImportedScene {
 fn default_keys()->u32 {3}
 fn validate(s:&ImportedFloor)->Result<(), &'static str> {
     if !(5..=160).contains(&s.width)||!(5..=120).contains(&s.height)||s.tiles.len()!=s.width*s.height||s.enemies.len()>64 {return Err("Invalid floor dimensions");}
-    if s.tiles.iter().any(|v|![0,1,3,4,5,6,7,9].contains(v)) {return Err("Unknown tile");}
-    let floor=|p:[usize;2]|p[0]<s.width&&p[1]<s.height&&s.tiles[p[1]*s.width+p[0]]==0;
+    if s.tiles.iter().any(|v|![0,1,3,4,5,6,7,9,10,11,12,13,14,16].contains(v)) {return Err("Unknown tile");}
+    let floor=|p:[usize;2]|p[0]<s.width&&p[1]<s.height&&[0,10,11,14].contains(&s.tiles[p[1]*s.width+p[0]]);
     if !floor(s.spawn)||s.enemies.iter().any(|p|!floor(*p)||*p==s.spawn) {return Err("Invalid spawn or enemies");}
     let mut occupied=std::collections::HashSet::new();
     if s.enemies.iter().any(|p|!occupied.insert(*p)) {return Err("Duplicate enemies");}
@@ -31,7 +31,7 @@ fn make_enemy(p:[usize;2])->state::Enemy {
 fn make_floor(s:ImportedFloor)->state::CustomFloorState {
     state::CustomFloorState {
         map:s.tiles.chunks(s.width).map(|row|row.iter().map(|v|match v {
-            1=>state::TileType::Wall,3=>state::TileType::StairDown,4=>state::TileType::StairUp,5=>state::TileType::Pit,6=>state::TileType::WarpHole,7=>state::TileType::LockedDoor,9=>state::TileType::KeyPickup,_=>state::TileType::Room,
+            1=>state::TileType::Wall,3=>state::TileType::StairDown,4=>state::TileType::StairUp,5=>state::TileType::Pit,6=>state::TileType::WarpHole,7=>state::TileType::LockedDoor,9=>state::TileType::KeyPickup,10=>state::TileType::Grass,11=>state::TileType::Forest,12=>state::TileType::Water,13=>state::TileType::Mountain,14=>state::TileType::Road,16=>state::TileType::Portal,_=>state::TileType::Room,
         }).collect()).collect(),
         spawn:[s.spawn[0] as i32,s.spawn[1] as i32],enemies:s.enemies.into_iter().map(make_enemy).collect(),
     }
@@ -55,6 +55,7 @@ pub fn load_mindzj_scene(json:&str)->Result<(),JsValue> {
     if json.len()>2_000_000 {return Err(JsValue::from_str("Scene too large"));}
     let s:ImportedScene=serde_json::from_str(json).map_err(|_|JsValue::from_str("Invalid scene JSON"))?;
     let game=build_game(s).map_err(|e|JsValue::from_str(e))?;
+    CAMPAIGN_CACHE.with(|cache|cache.borrow_mut().clear());
     DUNGEONLOAD_STATE.with(|slot|*slot.borrow_mut()=Some(game));Ok(())
 }
 #[cfg(test)]
@@ -87,5 +88,43 @@ mod tests {
         let mut a=floor();a.tiles[2*9+3]=5;let mut g=scene(a,vec![floor()],3);g.move_player(2);assert_eq!(g.depth,2);assert_eq!(g.scene,state::RogueScene::Playing);
     }
     #[test]
+    fn travel_preserves_world_state_and_shares_progress() {
+        CAMPAIGN_CACHE.with(|cache|cache.borrow_mut().clear());
+        let mut f=floor();f.tiles[2*9+3]=7;
+        let mut g=scene(f,vec![],1);g.hp=37;g.move_player(2);
+        DUNGEONLOAD_STATE.with(|slot|*slot.borrow_mut()=Some(g));
+        let f=floor();
+        let json=serde_json::json!({"width":f.width,"height":f.height,"tiles":f.tiles,"spawn":f.spawn,"enemies":[]}).to_string();
+        assert!(travel_mindzj_scene("world","town",&json).is_ok());
+        DUNGEONLOAD_STATE.with(|slot|{let mut b=slot.borrow_mut();let g=b.as_mut().unwrap();assert_eq!(g.hp,37);assert_eq!(g.inventory[5],0);g.inventory[5]=4;});
+        assert!(travel_mindzj_scene("town","world",&json).is_ok());
+        DUNGEONLOAD_STATE.with(|slot|{let b=slot.borrow();let g=b.as_ref().unwrap();assert!(g.map[2][3]==state::TileType::OpenDoor);assert_eq!(g.player_x,3);assert_eq!(g.inventory[5],4);});
+    }
+    #[test]
     fn rejects_bad_maps() {let mut f=floor();f.tiles[0]=0;assert!(validate(&f).is_err());}
+}
+
+thread_local! {
+    static CAMPAIGN_CACHE: std::cell::RefCell<std::collections::HashMap<String,RoguelikeGame>> = std::cell::RefCell::new(std::collections::HashMap::new());
+}
+#[wasm_bindgen]
+pub fn travel_mindzj_scene(from:&str,to:&str,json:&str)->Result<(),JsValue> {
+    if from==to||from.len()>80||to.len()>80||json.len()>2_000_000{return Err(JsValue::from_str("Invalid destination"));}
+    let scene:ImportedScene=serde_json::from_str(json).map_err(|_|JsValue::from_str("Invalid scene"))?;
+    let fresh=build_game(scene).map_err(|e|JsValue::from_str(e))?;
+    DUNGEONLOAD_STATE.with(|slot|{
+        let mut slot=slot.borrow_mut();
+        if slot.as_ref().map(|g|g.scene!=state::RogueScene::Playing).unwrap_or(true){return Err(JsValue::from_str("Cannot travel now"));}
+        CAMPAIGN_CACHE.with(|cache|{
+            let mut cache=cache.borrow_mut();
+            if cache.len()>=32&&!cache.contains_key(to){return Err(JsValue::from_str("Too many visited places"));}
+            let old=slot.take().unwrap();
+            let mut next=cache.remove(to).unwrap_or(fresh);
+            next.hp=old.hp;next.max_hp=old.max_hp;next.mp=old.mp;next.max_mp=old.max_mp;
+            next.level=old.level;next.exp=old.exp;next.next_level_exp=old.next_level_exp;
+            next.inventory=old.inventory;next.equipment=old.equipment;next.eq_inventory=old.eq_inventory.clone();
+            next.no_damage_mode=old.no_damage_mode;next.visual_palette=old.visual_palette;next.enemy_attack_interval_scale=old.enemy_attack_interval_scale;
+            cache.insert(from.to_string(),old);*slot=Some(next);Ok(())
+        })
+    })
 }

@@ -99,6 +99,8 @@ export function start_game_roguelike(): void;
 
 export function tick_roguelike(ts: number): void;
 
+export function travel_mindzj_scene(from: string, to: string, json: string): void;
+
 export function unequip_accessory_roguelike(): void;
 
 export function unequip_armor_roguelike(): void;
@@ -164,6 +166,7 @@ export interface InitOutput {
     readonly set_start_depth_roguelike: (a: number) => void;
     readonly start_game_roguelike: () => void;
     readonly tick_roguelike: (a: number) => void;
+    readonly travel_mindzj_scene: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
     readonly unequip_accessory_roguelike: () => void;
     readonly unequip_armor_roguelike: () => void;
     readonly unequip_weapon_roguelike: () => void;

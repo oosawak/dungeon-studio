@@ -236,6 +236,12 @@ pub fn map_data_roguelike() -> Vec<u8> {
                         crate::state::TileType::LockedDoor => 7u8,
                         crate::state::TileType::OpenDoor => 8u8,
                         crate::state::TileType::KeyPickup => 9u8,
+                        crate::state::TileType::Grass => 10u8,
+                        crate::state::TileType::Forest => 11u8,
+                        crate::state::TileType::Water => 12u8,
+                        crate::state::TileType::Mountain => 13u8,
+                        crate::state::TileType::Road => 14u8,
+                        crate::state::TileType::Portal => 16u8,
                     })
                 })
                 .collect()

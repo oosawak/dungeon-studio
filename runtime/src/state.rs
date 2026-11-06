@@ -13,6 +13,12 @@ pub enum TileType {
     LockedDoor,
     OpenDoor,
     KeyPickup,
+    Grass,
+    Forest,
+    Water,
+    Mountain,
+    Road,
+    Portal,
 }
 
 #[derive(Clone)]
@@ -815,7 +821,7 @@ impl RoguelikeGame {
             return false;
         }
         matches!(self.map[y as usize][x as usize],
-            TileType::Floor | TileType::Room | TileType::StairDown | TileType::StairUp | TileType::WarpHole | TileType::OpenDoor | TileType::KeyPickup)
+            TileType::Floor | TileType::Room | TileType::StairDown | TileType::StairUp | TileType::WarpHole | TileType::OpenDoor | TileType::KeyPickup | TileType::Grass | TileType::Forest | TileType::Road)
     }
 
     fn is_pit(&self, x: i32, y: i32) -> bool {
@@ -2194,6 +2200,12 @@ pub fn render_canvas(game: &RoguelikeGame, canvas_id: &str, width: i32, height: 
                             crate::state::TileType::LockedDoor => "#a16a30",
                             crate::state::TileType::OpenDoor => "#496749",
                             crate::state::TileType::KeyPickup => "#705c19",
+                            crate::state::TileType::Grass => "#61915b",
+                            crate::state::TileType::Forest => "#315c3a",
+                            crate::state::TileType::Water => "#28628a",
+                            crate::state::TileType::Mountain => "#78776e",
+                            crate::state::TileType::Road => "#b8a078",
+                            crate::state::TileType::Portal => "#a37a56",
                         };
 
                         ctx.set_fill_style(&color.into());
@@ -2203,8 +2215,8 @@ pub fn render_canvas(game: &RoguelikeGame, canvas_id: &str, width: i32, height: 
                         ctx.set_line_width(0.3);
                         ctx.stroke_rect(screen_x, screen_y, cell_w, cell_h);
 
-                        if matches!(tile_type, TileType::LockedDoor | TileType::OpenDoor | TileType::KeyPickup) {
-                            let symbol=match tile_type { TileType::LockedDoor=>"LOCK", TileType::OpenDoor=>"OPEN", _=>"KEY" };
+                        if matches!(tile_type, TileType::LockedDoor | TileType::OpenDoor | TileType::KeyPickup | TileType::Grass | TileType::Forest | TileType::Road) {
+                            let symbol=match tile_type { TileType::LockedDoor=>"LOCK", TileType::OpenDoor=>"OPEN", TileType::Portal=>"ENTER", _=>"KEY" };
                             ctx.set_fill_style(&"#fff0b0".into());
                             ctx.set_font(&format!("bold {}px sans-serif", (cell_w*0.22).max(8.0)));
                             let _=ctx.fill_text(symbol,screen_x+cell_w*0.12,screen_y+cell_h*0.6);
@@ -2654,7 +2666,7 @@ impl RoguelikeGame {
             let (x,y)=(self.player_x+dx,self.player_y+dy);
             if x<0||y<0||x>=self.map_width||y>=self.map_height {break;}
             let tile=self.map[y as usize][x as usize];
-            if tile==TileType::Wall {self.add_message("Bumped into a wall.".into());break;}
+            if matches!(tile,TileType::Wall|TileType::Water|TileType::Mountain|TileType::Portal) {self.add_message("Bumped into a wall.".into());break;}
             if self.enemies.iter().any(|e|e.x==x&&e.y==y) {
                 self.handle_attack_hit(x,y,10+self.equipment.get_atk_bonus());
                 self.enemy_attack_adjacent();return;
