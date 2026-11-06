@@ -2,20 +2,19 @@
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FPS Studio / INKBOUND</title>
 <link rel="icon" href="data:,"><link rel="stylesheet" href="engine.css?v=atlas3"><style>
 :root{--ink:#194d9b;--paper:#f7f3e7}*{box-sizing:border-box}body{margin:0;overflow:hidden;background:var(--paper);color:var(--ink);font-family:DenkiChip,monospace}canvas{display:block}#hud{position:fixed;inset:0;pointer-events:none;padding:25px;background:repeating-linear-gradient(0deg,transparent 0 35px,#194d9b07 36px 37px)}.top{display:flex;justify-content:space-between;align-items:start}.label{font-size:12px;letter-spacing:3px}.value{font-size:30px;font-weight:bold}.card{background:#f7f3e7dd;border:2px solid var(--ink);box-shadow:4px 4px 0 #194d9b22;padding:12px 18px;transform:rotate(-1deg)}#stats{display:flex;gap:30px}#health{height:5px;background:var(--ink);margin-top:8px;transition:width .15s}#ammo{position:absolute;bottom:32px;right:30px;min-width:170px}#status{position:absolute;bottom:32px;left:28px;font-size:13px;line-height:1.8}#crosshair{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:25px}#notice{position:absolute;top:23%;left:0;right:0;text-align:center;font-weight:bold;font-size:25px}#hit{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:38px;opacity:0}#damage{position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 120px #c83737;opacity:0}#menu{position:fixed;inset:0;display:grid;place-items:center;background:#f7f3e7bb;backdrop-filter:blur(5px)}.sheet{width:min(660px,92vw);padding:40px 45px;border:2px solid var(--ink);box-shadow:9px 10px 0 #194d9b30;background:repeating-linear-gradient(0deg,#faf7ec 0 31px,#c4d3df 32px,#faf7ec 33px);transform:rotate(-1deg)}h1{font-size:clamp(42px,8vw,72px);letter-spacing:-5px;line-height:.9;margin:20px 0}h1 span{font-size:24px;letter-spacing:6px}p{line-height:1.8;font-size:14px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;margin:24px 0}button{background:var(--ink);color:var(--paper);border:0;padding:15px 40px;font:bold 23px DenkiChip,monospace;cursor:pointer;box-shadow:4px 4px 0 #194d9b44}button:disabled{opacity:.5}#message{font-size:13px;min-height:22px}kbd{font-weight:bold}#footer{font-size:11px;margin-top:22px;letter-spacing:1px}
+#location-name{position:absolute;top:135px;left:28px;font-size:15px}#entrance-prompt{position:absolute;bottom:135px;left:50%;transform:translateX(-50%);padding:12px 18px;border:2px solid var(--ink);background:var(--paper);font-size:18px;text-align:center;max-width:80vw}[hidden]{display:none!important}
 </style></head><body>
-<div id="hud"><div class="top"><div class="card"><div class="label">VITAL SIGNS</div><div class="value">HP <span id="hp">100</span></div><div id="health"></div></div><div id="stats" class="card"><div><div class="label">SCORE</div><div id="score" class="value">0000</div></div><div><div class="label">WAVE</div><div id="wave" class="value">01</div></div></div></div><div id="notice"></div><div id="crosshair">+</div><div id="hit">×</div><div id="status">WASD 移動 · SPACE ジャンプ<br>SHIFT 疾走 / 空中ダッシュ · CTRL スライド<br>E 長押し グラップル · R リロード · ESC ポーズ</div><div id="ammo" class="card"><div class="label" id="weaponLabel">INK RIFLE / AUTO</div><div class="value" id="rounds">30 / ∞</div><div id="ability" class="label">AIR DASH READY</div></div></div><div id="damage"></div>
-<div id="menu"><div class="sheet"><div class="label">FPS STUDIO / <span id="stage-name">TOWN STAGE</span></div><h1>FPS STUDIO<br><span>INKBOUND / ROOFTOP RUN</span></h1><p id="intro">青インクの街を駆け抜け、追跡ドローンを撃ち落とせ。<br>WaveをクリアするとHPが25回復します。</p><div class="controls"><span><kbd>W A S D</kbd> 移動</span><span><kbd>MOUSE</kbd> 視点 / 左クリック射撃</span><span><kbd>SPACE</kbd> ジャンプ</span><span><kbd>SHIFT</kbd> 地上スプリント</span><span><kbd>CTRL</kbd> 地上スライド</span><span><kbd>SHIFT</kbd> 空中ダッシュ（着地で補充）</span><span><kbd>E 長押し</kbd> 建物へグラップル</span><span><kbd>R</kbd> リロード / 弾薬無制限</span><span><kbd>V</kbd> FPS / TPS 視点切り替え</span></div><button id="play" disabled>LOADING…</button><p id="message">Three.jsを読み込んでいます…</p><div id="footer">PC + キーボード・マウス / ESCで一時停止<br><a id="back-editor" style="color:inherit;display:inline-block;margin-top:14px" href="town.html">← 制作画面へ戻る</a> · <a style="color:inherit" href="https://github.com/oosawak/INKBOUND" target="_blank" rel="noopener noreferrer">INKBOUND GitHub</a></div></div></div>
+<div id="hud"><div class="top"><div class="card"><div class="label">VITAL SIGNS</div><div class="value">HP <span id="hp">100</span></div><div id="health"></div></div><div id="stats" class="card"><div><div class="label">SCORE</div><div id="score" class="value">0000</div></div><div><div class="label">WAVE</div><div id="wave" class="value">01</div></div></div></div><div id="notice"></div><div id="crosshair">+</div><div id="location-name"></div><div id="entrance-prompt" hidden></div><div id="hit">×</div><div id="status">WASD 移動 · SPACE ジャンプ<br>SHIFT 疾走 / 空中ダッシュ · CTRL スライド<br>F 入口に入る / 外へ戻る<br>E 長押し グラップル · R リロード · ESC ポーズ</div><div id="ammo" class="card"><div class="label" id="weaponLabel">INK RIFLE / AUTO</div><div class="value" id="rounds">30 / ∞</div><div id="ability" class="label">AIR DASH READY</div></div></div><div id="damage"></div>
+<div id="menu"><div class="sheet"><div class="label">FPS STUDIO / <span id="stage-name">TOWN STAGE</span></div><h1>FPS STUDIO<br><span>INKBOUND / ROOFTOP RUN</span></h1><p id="intro">青インクの街を駆け抜け、追跡ドローンを撃ち落とせ。<br>WaveをクリアするとHPが25回復します。</p><div class="controls"><span><kbd>W A S D</kbd> 移動</span><span><kbd>MOUSE</kbd> 視点 / 左クリック射撃</span><span><kbd>SPACE</kbd> ジャンプ</span><span><kbd>SHIFT</kbd> 地上スプリント</span><span><kbd>CTRL</kbd> 地上スライド</span><span><kbd>SHIFT</kbd> 空中ダッシュ（着地で補充）</span><span><kbd>E 長押し</kbd> 建物へグラップル</span><span><kbd>R</kbd> リロード / 弾薬無制限</span><span><kbd>V</kbd> FPS / TPS 視点切り替え</span><span><kbd>F</kbd> 入口に入る / 外へ戻る</span></div><button id="play" disabled>LOADING…</button><p id="message">Three.jsを読み込んでいます…</p><div id="footer">PC + キーボード・マウス / ESCで一時停止<br><a id="back-editor" style="color:inherit;display:inline-block;margin-top:14px" href="town.html">← 制作画面へ戻る</a> · <a style="color:inherit" href="https://github.com/oosawak/INKBOUND" target="_blank" rel="noopener noreferrer">INKBOUND GitHub</a></div></div></div>
 <script src="./vendor/three-160.min.js" onerror="document.getElementById('message').textContent='描画ライブラリを読み込めませんでした。' "></script>
 <script type="module">
 import {readScene,locationScene} from './scene-format.js?v=atlas3';
 import {createCampaign} from './campaign.js?v=atlas3';
-import {compileFpsStage} from './fps-stage.js?v=atlas3';
+import {createFpsJourney} from './fps-journey.js?v=portals1';
 let project=createCampaign(42);
 try{if(location.hash.startsWith('#scene='))project=readScene(decodeURIComponent(location.hash.slice(7)));}catch(error){document.getElementById('message').textContent=error.message;throw error;}
-const map=locationScene(project,project.startLocation||'town'),stage=compileFpsStage(map);
-const editor=map.mapKind==='town'?'town.html':map.mapKind==='world'?'world.html':'index.html';
-document.getElementById('back-editor').href=editor+'#scene='+encodeURIComponent(JSON.stringify(project));
-document.getElementById('stage-name').textContent=stage.title;
+const journey=createFpsJourney(project);
+let map=locationScene(project,journey.locationId),stage=journey.current();
 'use strict';
 if(typeof THREE!=='undefined') { try { boot(); } catch(error) { document.getElementById('message').textContent='起動できません: '+error.message; console.error(error); } }
 function boot(){
@@ -24,22 +23,34 @@ const scene=new THREE.Scene();scene.background=new THREE.Color(PAPER);scene.fog=
 const camera=new THREE.PerspectiveCamera(78,innerWidth/innerHeight,.05,180);camera.rotation.order='YXZ';scene.add(camera);
 const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);document.body.prepend(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xffffff,0xb6c3d8,2));const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(20,40,10);scene.add(sun);
-const paper=new THREE.MeshStandardMaterial({color:PAPER,roughness:1}),ink=new THREE.LineBasicMaterial({color:BLUE}),solids=[],surfaces=[],enemies=[],marks=[],effects=[];
-function box(w,h,d,x,y,z,parent=scene,mat=paper){const g=new THREE.BoxGeometry(w,h,d),m=new THREE.Mesh(g,mat);m.position.set(x,y,z);m.add(new THREE.LineSegments(new THREE.EdgesGeometry(g),ink));parent.add(m);return m;}
+const paper=new THREE.MeshStandardMaterial({color:PAPER,roughness:1}),ink=new THREE.LineBasicMaterial({color:BLUE});
+let solids=[],surfaces=[],enemies=[],marks=[],stageGroup;
+const locations=new Map();
+function box(w,h,d,x,y,z,parent=stageGroup,mat=paper){const g=new THREE.BoxGeometry(w,h,d),m=new THREE.Mesh(g,mat);m.position.set(x,y,z);m.add(new THREE.LineSegments(new THREE.EdgesGeometry(g),ink));parent.add(m);return m;}
 function block(w,h,d,x,y,z){const m=box(w,h,d,x,y,z);solids.push({min:new THREE.Vector3(x-w/2,y-h/2,z-d/2),max:new THREE.Vector3(x+w/2,y+h/2,z+d/2)});surfaces.push(m);return m;}
-// Town Studio buildings and dungeon cells use the same coordinate adapter.
-const spawn=new THREE.Vector3(stage.spawn[0],0,stage.spawn[1]);
+// Cache each location geometry and combat state while visiting other maps.
+const spawn=new THREE.Vector3();
+function buildLocation(){
+ stageGroup=new THREE.Group();scene.add(stageGroup);solids=[];surfaces=[];enemies=[];marks=[];
 if(stage.kind==='town'||stage.kind==='world')block(stage.width+12,2,stage.depth+12,0,-1,0);
 else {for(const f of stage.floors)block(f.w,.4,f.d,f.x,-.2,f.z);for(const wall of stage.walls)block(wall.w,wall.h,wall.d,wall.x,wall.h/2,wall.z);}
-const grid=new THREE.GridHelper(Math.max(stage.width,stage.depth),Math.max(map.width,map.height),BLUE,0xa3b9d3);grid.position.y=.014;grid.material.transparent=true;grid.material.opacity=.14;scene.add(grid);
+const grid=new THREE.GridHelper(Math.max(stage.width,stage.depth),Math.max(map.width,map.height),BLUE,0xa3b9d3);grid.position.y=.014;grid.material.transparent=true;grid.material.opacity=.14;stageGroup.add(grid);
 for(const b of stage.buildings){
  block(b.w,b.h,b.d,b.x,b.h/2,b.z);
- for(let y=1.6;y<b.h-.8;y+=2)for(let x=-b.w/2+1.2;x<b.w/2-1;x+=2.4)box(.8,.9,.035,b.x+x,y,b.z+b.d/2+.025,scene,new THREE.MeshBasicMaterial({color:0xb3c9e1}));
+ for(let y=1.6;y<b.h-.8;y+=2)for(let x=-b.w/2+1.2;x<b.w/2-1;x+=2.4)box(.8,.9,.035,b.x+x,y,b.z+b.d/2+.025,stageGroup,new THREE.MeshBasicMaterial({color:0xb3c9e1}));
  const e=.18;block(b.w,e,b.d,b.x,b.h+e/2,b.z);
  block(1.2,.8,1.2,b.x+b.w*.2,b.h+.6,b.z);
  for(let k=0;k<Math.min(3,Math.floor(b.h/1.2));k++)block(2,1.2*(k+1),2,b.x-b.w/2-1.2,.6*(k+1),b.z+b.d/2-1-k*2);
 }
+// Blue entrance frames are visual cues, with no collision blocking the interaction.
+const portalInk=new THREE.MeshBasicMaterial({color:BLUE,transparent:true,opacity:.65});
+for(const portal of stage.portals){
+ const gate=new THREE.Group();gate.position.set(portal.x,0,portal.z);stageGroup.add(gate);
+ const ring=new THREE.Mesh(new THREE.RingGeometry(.65,.85,32),portalInk);ring.rotation.x=-Math.PI/2;ring.position.y=.025;gate.add(ring);
+ box(.1,2.2,.1,-.85,1.1,0,gate,portalInk);box(.1,2.2,.1,.85,1.1,0,gate,portalInk);box(1.8,.1,.1,0,2.2,0,gate,portalInk);
+}
 for(const [x,z,w,d]of [[-stage.width/2-3,0,1,stage.depth+12],[stage.width/2+3,0,1,stage.depth+12],[0,-stage.depth/2-3,stage.width+12,1],[0,stage.depth/2+3,stage.width+12,1]])block(w,14,d,x,7,z);
+}
 let cameraMode='fps';
 const avatar=new THREE.Group();scene.add(avatar);
 box(.48,.7,.3,0,.98,0,avatar);box(.36,.36,.36,0,1.52,0,avatar);box(.16,.65,.17,-.38,1,0,avatar);box(.16,.65,.17,.38,1,0,avatar);box(.18,.7,.21,-.14,.35,0,avatar);box(.18,.7,.21,.14,.35,0,avatar);
@@ -60,7 +71,33 @@ function aim(){
  avatar.visible=cameraMode==='tps';avatar.position.copy(p.pos);avatar.rotation.y=yaw;gun.visible=cameraMode==='fps';camera.updateMatrixWorld(true);
 }
 function message(t){$('notice').textContent=t;noticeTime=2.5;}
-function reset(){for(const e of enemies)disposeEnemy(e);enemies.length=0;for(const m of marks){scene.remove(m);m.geometry.dispose();}marks.length=0;p.pos.copy(spawn);p.vel.set(0,0,0);p.ground=false;p.air=true;p.dash=p.slide=0;p.grapple=null;yaw=pitch=recoil=kick=0;hp=100;score=wave=0;ammo=30;reloadTime=shotTime=0;waveTime=1;dead=false;started=true;message('ノートの街へようこそ');}
+function updateLocationUI(){
+ $('stage-name').textContent=stage.title;$('location-name').textContent=stage.title;
+ const kind=map.mapKind==='town'?'town.html':map.mapKind==='world'?'world.html':'index.html';
+ const edited={...project,startLocation:journey.locationId};
+ $('back-editor').href=kind+'#scene='+encodeURIComponent(JSON.stringify(edited));
+}
+function loadLocation(){
+ map=locationScene(project,journey.locationId);stage=journey.current();
+ spawn.set(stage.spawn[0],0,stage.spawn[1]);
+ const saved=locations.get(journey.locationId);
+ if(saved){
+  ({stageGroup,solids,surfaces,enemies,marks,wave,waveTime}=saved);scene.add(stageGroup);
+  p.pos.fromArray(saved.position);yaw=saved.yaw;pitch=saved.pitch;
+ }else{buildLocation();p.pos.copy(spawn);yaw=pitch=0;wave=0;waveTime=1;}
+ p.vel.set(0,0,0);p.ground=false;p.air=true;p.dash=p.slide=0;p.height=1.7;
+ clearInput();recoil=kick=0;updateLocationUI();aim();
+}
+function enterNearby(){
+ const portal=journey.nearby(p.pos.toArray());if(!portal)return;
+ try{
+  const previous=journey.locationId;
+  journey.travel(portal);
+  locations.set(previous,{stageGroup,solids,surfaces,enemies,marks,wave,waveTime,position:p.pos.toArray(),yaw,pitch});
+  scene.remove(stageGroup);loadLocation();message(stage.title+' に移動しました');
+ }catch(error){message(error.message);}
+}
+function reset(){for(const e of enemies)disposeEnemy(e);enemies.length=0;for(const m of marks){m.removeFromParent();m.geometry.dispose();}marks.length=0;p.pos.copy(spawn);p.vel.set(0,0,0);p.ground=false;p.air=true;p.dash=p.slide=0;p.grapple=null;yaw=pitch=recoil=kick=0;hp=100;score=wave=0;ammo=30;reloadTime=shotTime=0;waveTime=1;dead=false;started=true;message(stage.title+' へようこそ');}
 function clearInput(){for(const k in keys)delete keys[k];fire=false;p.grapple=null;rope.visible=false;}
 $('play').disabled=false;$('play').textContent='PLAY →';$('message').textContent='クリックするとマウスをゲーム内に固定します。';
 $('play').onclick=()=>{if(!started||dead)reset();try{const result=renderer.domElement.requestPointerLock();if(result&&result.catch)result.catch(()=>{$('message').textContent='マウス固定が許可されませんでした。もう一度PLAYを押してください。';});}catch(e){$('message').textContent='このブラウザではマウス固定を利用できません。';}};
@@ -68,10 +105,11 @@ document.addEventListener('pointerlockchange',()=>{locked=document.pointerLockEl
 document.addEventListener('pointerlockerror',()=>{$('message').textContent='マウス固定に失敗しました。ブラウザで直接開き、もう一度お試しください。';});
 window.addEventListener('blur',()=>{clearInput();if(locked)document.exitPointerLock();});document.addEventListener('visibilitychange',()=>{if(document.hidden&&locked)document.exitPointerLock();});
 document.addEventListener('mousemove',e=>{if(locked&&!dead){yaw-=e.movementX*.002;pitch=THREE.MathUtils.clamp(pitch-e.movementY*.002,-1.45,1.45);}});
-document.addEventListener('keydown',e=>{if(!locked||dead)return;if(['Space','ControlLeft','ControlRight','ShiftLeft','ShiftRight','KeyW','KeyA','KeyS','KeyD','KeyE','KeyR'].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.repeat)return;
+document.addEventListener('keydown',e=>{if(!locked||dead)return;if(['Space','ControlLeft','ControlRight','ShiftLeft','ShiftRight','KeyW','KeyA','KeyS','KeyD','KeyE','KeyR','KeyF','KeyV'].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.repeat)return;
 if(e.code==='Space'&&p.ground){p.vel.y=9;p.ground=false;}
 if(e.code==='KeyV'){cameraMode=cameraMode==='fps'?'tps':'fps';message(cameraMode.toUpperCase()+' VIEW');}
 if(e.code==='KeyR')reload();
+if(e.code==='KeyF'){enterNearby();return;}
 if(e.code.startsWith('Shift')&&!p.ground&&p.air){p.air=false;p.dash=.18;direction();if(wish.lengthSq()<.1)wish.copy(forward);p.vel.x=wish.x*25;p.vel.z=wish.z*25;}
 if(e.code.startsWith('Control')&&p.ground&&Math.hypot(p.vel.x,p.vel.z)>3){p.slide=.7;direction();if(wish.lengthSq()<.1)wish.copy(forward);p.vel.x=wish.x*18;p.vel.z=wish.z*18;}
 if(e.code==='KeyE'){aim();ray.setFromCamera(new THREE.Vector2(),camera);ray.far=42;const hit=ray.intersectObjects(surfaces,false)[0];if(hit&&hit.point.y>.3){p.grapple=hit.point.clone().addScaledVector(hit.face.normal,.7);p.grapple.y+=1; p.ground=false;}else message('建物を狙って E / 射程42m');}});
@@ -82,16 +120,17 @@ function direction(){forward.set(-Math.sin(yaw),0,-Math.cos(yaw));right.set(Math
 function move(dt){const r=.34,h=1.75;p.ground=false;for(const axis of ['x','z','y']){const delta=p.vel[axis]*dt;p.pos[axis]+=delta;for(const b of solids){if(p.pos.x+r<=b.min.x||p.pos.x-r>=b.max.x||p.pos.z+r<=b.min.z||p.pos.z-r>=b.max.z||p.pos.y+h<=b.min.y||p.pos.y>=b.max.y)continue;if(axis==='y'){if(delta<=0){p.pos.y=b.max.y;p.ground=true;p.air=true;}else p.pos.y=b.min.y-h;}else p.pos[axis]=delta>0?b.min[axis]-r:b.max[axis]+r;p.vel[axis]=0;}}}
 function reload(){if(ammo<30&&reloadTime<=0)reloadTime=1.35;}
 const markMat=new THREE.MeshBasicMaterial({color:BLUE,side:THREE.DoubleSide,depthWrite:false});
-function shoot(){if(reloadTime>0||shotTime>0)return;if(!ammo){reload();return;}ammo--;shotTime=.1;flashTime=.045;kick=.09;aim();ray.setFromCamera(new THREE.Vector2(),camera);ray.far=100;const targets=surfaces.concat(enemies.map(e=>e.body));const hit=ray.intersectObjects(targets,false)[0];if(hit){const e=hit.object.userData.enemy;if(e){e.hp-=34;hitTime=.12;e.bar.scale.x=Math.max(.001,e.hp/e.max);if(e.hp<=0){score+=100;disposeEnemy(e);enemies.splice(enemies.indexOf(e),1);}}else{const m=new THREE.Mesh(new THREE.CircleGeometry(.065,7),markMat);m.position.copy(hit.point).addScaledVector(hit.face.normal,.015);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),hit.face.normal);scene.add(m);marks.push(m);if(marks.length>80){const old=marks.shift();scene.remove(old);old.geometry.dispose();}}}recoil=Math.min(.12,recoil+.021);}
-function disposeEnemy(e){scene.remove(e.group);e.group.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material&&o.material!==paper&&o.material!==ink)o.material.dispose();});}
-function spawnWave(){wave++;const count=Math.min(4+wave*2,24);for(let i=0;i<count;i++){const a=i/count*Math.PI*2+wave*.4;const g=new THREE.Group();g.position.set(Math.cos(a)*35,12+Math.random()*3,Math.sin(a)*35);scene.add(g);const body=new THREE.Mesh(new THREE.IcosahedronGeometry(.7,0),new THREE.MeshStandardMaterial({color:0xe4eafa,roughness:1}));body.add(new THREE.LineSegments(new THREE.EdgesGeometry(body.geometry),ink));g.add(body);box(.7,.12,.14,0,.05,.62,g,new THREE.MeshBasicMaterial({color:BLUE}));const bg=new THREE.Mesh(new THREE.PlaneGeometry(1,.09),new THREE.MeshBasicMaterial({color:0xc2cbd6,side:2}));bg.position.y=1.1;g.add(bg);const bar=new THREE.Mesh(new THREE.PlaneGeometry(1,.09),new THREE.MeshBasicMaterial({color:BLUE,side:2}));bar.position.set(0,1.1,.01);g.add(bar);const max=100+Math.min(wave-1,10)*10;const e={group:g,body,bar,bg,hp:max,max,cool:1+Math.random(),seed:i};body.userData.enemy=e;enemies.push(e);}message('WAVE '+wave+' / '+count+' DRONES');}
+function shoot(){if(reloadTime>0||shotTime>0)return;if(!ammo){reload();return;}ammo--;shotTime=.1;flashTime=.045;kick=.09;aim();ray.setFromCamera(new THREE.Vector2(),camera);ray.far=100;const targets=surfaces.concat(enemies.map(e=>e.body));const hit=ray.intersectObjects(targets,false)[0];if(hit){const e=hit.object.userData.enemy;if(e){e.hp-=34;hitTime=.12;e.bar.scale.x=Math.max(.001,e.hp/e.max);if(e.hp<=0){score+=100;disposeEnemy(e);enemies.splice(enemies.indexOf(e),1);}}else{const m=new THREE.Mesh(new THREE.CircleGeometry(.065,7),markMat);m.position.copy(hit.point).addScaledVector(hit.face.normal,.015);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),hit.face.normal);stageGroup.add(m);marks.push(m);if(marks.length>80){const old=marks.shift();old.removeFromParent();old.geometry.dispose();}}}recoil=Math.min(.12,recoil+.021);}
+function disposeEnemy(e){e.group.removeFromParent();e.group.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material&&o.material!==paper&&o.material!==ink)o.material.dispose();});}
+function spawnWave(){wave++;const count=Math.min(4+wave*2,24);for(let i=0;i<count;i++){const a=i/count*Math.PI*2+wave*.4;const g=new THREE.Group();g.position.set(Math.cos(a)*35,12+Math.random()*3,Math.sin(a)*35);stageGroup.add(g);const body=new THREE.Mesh(new THREE.IcosahedronGeometry(.7,0),new THREE.MeshStandardMaterial({color:0xe4eafa,roughness:1}));body.add(new THREE.LineSegments(new THREE.EdgesGeometry(body.geometry),ink));g.add(body);box(.7,.12,.14,0,.05,.62,g,new THREE.MeshBasicMaterial({color:BLUE}));const bg=new THREE.Mesh(new THREE.PlaneGeometry(1,.09),new THREE.MeshBasicMaterial({color:0xc2cbd6,side:2}));bg.position.y=1.1;g.add(bg);const bar=new THREE.Mesh(new THREE.PlaneGeometry(1,.09),new THREE.MeshBasicMaterial({color:BLUE,side:2}));bar.position.set(0,1.1,.01);g.add(bar);const max=100+Math.min(wave-1,10)*10;const e={group:g,body,bar,bg,hp:max,max,cool:1+Math.random(),seed:i};body.userData.enemy=e;enemies.push(e);}message('WAVE '+wave+' / '+count+' DRONES');}
 function damage(n){hp=Math.max(0,hp-n);damageTime=.35;if(hp<=0){dead=true;clearInput();$('intro').textContent='ノート終了 / SCORE '+score+' / WAVE '+wave+' — もう一度挑戦！';document.exitPointerLock();}}
 function updateEnemies(dt){for(const e of enemies){const pos=e.group.position,target=p.pos.clone().add(new THREE.Vector3(0,1.2,0)),v=target.sub(pos),dist=v.length();v.normalize();const speed=Math.min(3+wave*.22,6);const next=pos.clone().addScaledVector(v,speed*dt);let blocked=false;for(const b of solids){if(next.x>b.min.x-.8&&next.x<b.max.x+.8&&next.z>b.min.z-.8&&next.z<b.max.z+.8&&next.y>b.min.y-.8&&next.y<b.max.y+.8){blocked=true;next.y=Math.min(b.max.y+1,pos.y+speed*dt);next.x=pos.x;next.z=pos.z;break;}}if(dist>1.5||blocked)pos.copy(next);e.group.lookAt(camera.position);e.body.rotation.z=Math.sin(simTime*3+e.seed)*.1;e.cool-=dt;if(dist<2.3&&e.cool<=0){damage(9);e.cool=.8;if(dead)return;}}}
 function step(dt){simTime+=dt;shotTime=Math.max(0,shotTime-dt);flashTime=Math.max(0,flashTime-dt);hitTime=Math.max(0,hitTime-dt);damageTime=Math.max(0,damageTime-dt);noticeTime=Math.max(0,noticeTime-dt);recoil*=Math.exp(-12*dt);kick*=Math.exp(-16*dt);if(reloadTime>0){reloadTime-=dt;if(reloadTime<=0){reloadTime=0;ammo=30;}}direction();p.dash=Math.max(0,p.dash-dt);p.slide=Math.max(0,p.slide-dt);
 if(p.grapple){const pull=p.grapple.clone().sub(p.pos.clone().add(new THREE.Vector3(0,1,0)));if(pull.length()<1.2)p.grapple=null;else{pull.normalize().multiplyScalar(26);p.vel.lerp(pull,1-Math.exp(-10*dt));}}
 else if(p.dash<=0){if(p.slide>0){p.vel.x*=Math.exp(-1.2*dt);p.vel.z*=Math.exp(-1.2*dt);}else{const speed=p.ground&&(keys.ShiftLeft||keys.ShiftRight)?12:7;const accel=p.ground?16:3;p.vel.x=THREE.MathUtils.lerp(p.vel.x,wish.x*speed,1-Math.exp(-accel*dt));p.vel.z=THREE.MathUtils.lerp(p.vel.z,wish.z*speed,1-Math.exp(-accel*dt));}p.vel.y-=24*dt;}move(dt);p.height=THREE.MathUtils.lerp(p.height,p.slide>0?1:1.7,1-Math.exp(-14*dt));aim();if(p.pos.y< -10){p.pos.copy(spawn);p.vel.set(0,0,0);damage(25);}if(fire)shoot();updateEnemies(dt);if(dead)return;if(enemies.length===0){waveTime-=dt;if(waveTime<=0){if(wave>0)hp=Math.min(100,hp+25);spawnWave();waveTime=3;}}}
-function draw(dt){aim();const speed=Math.hypot(p.vel.x,p.vel.z);camera.fov=THREE.MathUtils.lerp(camera.fov,p.grapple||p.dash>0?91:speed>10?85:78,1-Math.exp(-6*dt));camera.updateProjectionMatrix();gun.position.set(.4+Math.sin(simTime*10)*Math.min(speed,.8)*.013,-.32+Math.cos(simTime*20)*Math.min(speed,.8)*.01-(reloadTime>0?.16*Math.sin(reloadTime/1.35*Math.PI):0),-.65+kick);gun.rotation.set(reloadTime>0?-.5*Math.sin(reloadTime/1.35*Math.PI):kick,0,-.04);flash.visible=flashTime>0;rope.visible=!!p.grapple;if(p.grapple){const a=rope.geometry.attributes.position;a.setXYZ(0,p.pos.x+.25,p.pos.y+p.height-.2,p.pos.z);a.setXYZ(1,p.grapple.x,p.grapple.y,p.grapple.z);a.needsUpdate=true;rope.geometry.computeBoundingSphere();} $('hp').textContent=Math.ceil(hp);$('health').style.width=hp+'%';$('score').textContent=String(score).padStart(4,'0');$('wave').textContent=String(wave).padStart(2,'0');$('rounds').textContent=ammo+' / ∞';$('weaponLabel').textContent=reloadTime>0?'RELOADING…':'INK RIFLE / AUTO';$('ability').textContent=p.grapple?'GRAPPLE CONNECTED':p.air?'AIR DASH READY':'AIR DASH USED';$('damage').style.opacity=damageTime; $('hit').style.opacity=hitTime>0?1:0;if(!noticeTime)$('notice').textContent='';renderer.render(scene,camera);}
-window.fpsStudio={getState:()=>({title:stage.title,kind:stage.kind,buildings:stage.buildings.length,solids:solids.length,walls:stage.walls.length,locked,mode:cameraMode,hp,ammo,wave,position:p.pos.toArray()})};
+function draw(dt){aim();const speed=Math.hypot(p.vel.x,p.vel.z);camera.fov=THREE.MathUtils.lerp(camera.fov,p.grapple||p.dash>0?91:speed>10?85:78,1-Math.exp(-6*dt));camera.updateProjectionMatrix();gun.position.set(.4+Math.sin(simTime*10)*Math.min(speed,.8)*.013,-.32+Math.cos(simTime*20)*Math.min(speed,.8)*.01-(reloadTime>0?.16*Math.sin(reloadTime/1.35*Math.PI):0),-.65+kick);gun.rotation.set(reloadTime>0?-.5*Math.sin(reloadTime/1.35*Math.PI):kick,0,-.04);flash.visible=flashTime>0;rope.visible=!!p.grapple;if(p.grapple){const a=rope.geometry.attributes.position;a.setXYZ(0,p.pos.x+.25,p.pos.y+p.height-.2,p.pos.z);a.setXYZ(1,p.grapple.x,p.grapple.y,p.grapple.z);a.needsUpdate=true;rope.geometry.computeBoundingSphere();} $('hp').textContent=Math.ceil(hp);$('health').style.width=hp+'%';$('score').textContent=String(score).padStart(4,'0');$('wave').textContent=String(wave).padStart(2,'0');$('rounds').textContent=ammo+' / ∞';$('weaponLabel').textContent=reloadTime>0?'RELOADING…':'INK RIFLE / AUTO';$('ability').textContent=p.grapple?'GRAPPLE CONNECTED':p.air?'AIR DASH READY':'AIR DASH USED';$('damage').style.opacity=damageTime; $('hit').style.opacity=hitTime>0?1:0;if(!noticeTime)$('notice').textContent='';const entrance=journey.nearby(p.pos.toArray());$('entrance-prompt').hidden=!entrance||!locked||dead;$('entrance-prompt').textContent=entrance?'F · '+entrance.label:'';renderer.render(scene,camera);}
+window.fpsStudio={getState:()=>({locationId:journey.locationId,history:journey.history,nearby:journey.nearby(p.pos.toArray()),yaw,pitch,title:stage.title,kind:stage.kind,buildings:stage.buildings.length,solids:solids.length,walls:stage.walls.length,locked,mode:cameraMode,hp,ammo,wave,enemies:enemies.length,marks:marks.length,position:p.pos.toArray()})};
+loadLocation();
 let last=performance.now(),accumulator=0;function frame(now){requestAnimationFrame(frame);const dt=Math.min((now-last)/1000,.05);last=now;if(locked&&!dead){accumulator+=dt;while(accumulator>=1/120){step(1/120);accumulator-=1/120;if(dead)break;}}else accumulator=0;draw(dt);}aim();requestAnimationFrame(frame);
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 }

@@ -1,0 +1,82 @@
+import {chromium} from 'playwright';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {createPlace} from '../web/campaign.js';
+import {readScene,writeScene,toRuntime} from '../web/scene-format.js';
+import {entranceForBuilding} from '../web/settlements.js';
+const base=(process.env.DUNGEON_STUDIO_URL||'http://127.0.0.1:8769/').replace(/\/$/,'');
+const output=fs.mkdtempSync(path.join(os.tmpdir(),'dungeon-studio-atlas-qa-'));
+console.log('QA artifacts:',output);
+const browser=await chromium.launch({headless:true,channel:process.env.PLAYWRIGHT_CHANNEL||undefined,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+try {
+ const page=await browser.newPage({viewport:{width:1440,height:960}}),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+ page.on('response',r=>{if(r.status()>=400)errors.push(r.status()+' '+r.url());});
+ const current=()=>page.evaluate(()=>dungeonStudio.getCurrentScene());
+ const shot=name=>page.screenshot({path:path.join(output,name+'.png'),fullPage:true});
+ await page.goto(base+'/town.html');await page.waitForFunction(()=>window.dungeonStudio);await page.evaluate(()=>document.fonts.ready);
+ // No force clicks: reproduce actionability at several desktop and mobile sizes.
+ for(const [width,height]of [[1440,960],[1280,720],[1024,768],[390,844]]){
+  await page.setViewportSize({width,height});await page.locator('[data-tool="building"]').click({timeout:5000});
+  assert.equal(await page.locator('[data-tool="building"]').getAttribute('aria-pressed'),'true');
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  await shot('town-'+width);
+ }
+ await page.setViewportSize({width:1440,height:960});
+ await page.locator('#play-fps').click();await page.waitForFunction(()=>window.fpsStudio);
+ assert.equal(await page.evaluate(()=>fpsStudio.getState().buildings),16);
+ await page.locator('#play').click();await page.waitForFunction(()=>fpsStudio.getState().locked);await shot('sample-town-fps');
+ await page.evaluate(()=>document.exitPointerLock());await page.waitForFunction(()=>!fpsStudio.getState().locked);
+ await page.locator('#back-editor').click();await page.waitForFunction(()=>window.dungeonStudio);
+ // A clear, deterministic site exercises UI geometry without relying on sample coordinates.
+ const fixture=createPlace('town');fixture.buildings=[];fixture.labels=[];
+ fixture.cells=fixture.cells.map((r,y)=>[...r].map((c,x)=>x===0||y===0||x===fixture.width-1||y===fixture.height-1?'#':'g').join(''));
+ fixture.entities=[{kind:'spawn',x:28,y:20},{kind:'exit',x:31,y:22}];
+ await page.locator('#file').setInputFiles({name:'site.md',mimeType:'text/markdown',buffer:Buffer.from(writeScene(fixture))});
+ await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('読み込みました'));
+ const point=async(x,y)=>{const b=await page.locator('#map').boundingBox(),f=await current();return{x:b.x+(x+.5)*b.width/f.width,y:b.y+(y+.5)*b.height/f.height};};
+ const drag=async(a,b)=>{await page.mouse.move(a.x,a.y);await page.mouse.down();await page.mouse.move(b.x,b.y,{steps:8});await page.mouse.up();};
+ await page.locator('[data-tool="building"]').click();await drag(await point(12,10),await point(14,12));
+ assert.equal((await current()).buildings.length,1);
+ const edit=async(id,value)=>{await page.locator('#'+id).fill(String(value));await page.locator('#'+id).press('Tab');};
+ await edit('building-name','引き継ぎの家');await edit('building-width',4);await edit('building-height',3);await edit('building-elevation',12);
+ await page.locator('#building-roof').selectOption('slate');await page.locator('#building-rotate').click();
+ let b=(await current()).buildings[0];assert.equal(b.rotation,90);assert.equal(b.w,4);assert.equal(b.elevation,12);
+ await page.locator('[data-tool="select"]').click();await drag(await point(13,11),await point(16,13));
+ let scene=await current();b=scene.buildings[0];assert.equal(b.x,15);assert.equal(b.y,12);
+ const portal=scene.entities.find(e=>e.buildingId===b.id);assert.deepEqual({x:portal.x,y:portal.y},entranceForBuilding(b));
+ assert.equal((await page.evaluate(()=>dungeonStudio.getScene())).linkedMaps.find(e=>e.id===portal.target).scene.title,b.name);
+ const runtime=toRuntime(scene);assert.equal(runtime.tiles[b.y*scene.width+b.x],1);assert.equal(runtime.tiles[portal.y*scene.width+portal.x],16);
+ await page.locator('#undo').click();assert.equal((await current()).buildings[0].x,12);await page.locator('#redo').click();assert.equal((await current()).buildings[0].x,15);
+ await shot('town-building');
+ const download=page.waitForEvent('download');await page.locator('#save').click();const md=path.join(output,'town.md');await(await download).saveAs(md);
+ const saved=readScene(fs.readFileSync(md,'utf8'));assert.equal(saved.buildings[0].name,'引き継ぎの家');
+ await page.locator('#file').setInputFiles(md);await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('読み込みました'));
+ assert.deepEqual(await current(),saved);
+ const png=page.waitForEvent('download');await page.locator('#export-png').click();const pngPath=path.join(output,'map.png');await(await png).saveAs(pngPath);
+ assert.equal(fs.readFileSync(pngPath).subarray(1,4).toString(),'PNG');
+ await page.locator('#play-fps').click();await page.waitForFunction(()=>window.fpsStudio);
+ assert.equal(await page.evaluate(()=>fpsStudio.getState().buildings),1);
+ const playFps=async(kind)=>{
+  assert.equal(await page.evaluate(()=>fpsStudio.getState().kind),kind);
+  await page.locator('#play').click();await page.waitForFunction(()=>fpsStudio.getState().locked&&document.pointerLockElement);
+  await page.waitForTimeout(200);const start=await page.evaluate(()=>fpsStudio.getState().position);
+  await page.keyboard.down('w');await page.waitForTimeout(350);await page.keyboard.up('w');
+  const end=await page.evaluate(()=>fpsStudio.getState().position);assert.ok(Math.hypot(end[0]-start[0],end[2]-start[2])>.1);
+  await page.keyboard.press('Space');await page.waitForTimeout(80);assert.ok((await page.evaluate(()=>fpsStudio.getState().position))[1]>end[1]+.1);
+  await page.mouse.down();await page.waitForTimeout(150);await page.mouse.up();assert.ok((await page.evaluate(()=>fpsStudio.getState().ammo))<30);
+  await page.keyboard.press('r');await page.waitForFunction(()=>fpsStudio.getState().ammo===30);
+  await page.keyboard.press('v');assert.equal(await page.evaluate(()=>fpsStudio.getState().mode),'tps');await shot(kind+'-tps');
+  await page.keyboard.press('v');assert.equal(await page.evaluate(()=>fpsStudio.getState().mode),'fps');await shot(kind+'-fps');
+  await page.evaluate(()=>document.exitPointerLock());await page.waitForFunction(()=>!fpsStudio.getState().locked);
+  const paused=await page.evaluate(()=>fpsStudio.getState().position);await page.keyboard.press('w');await page.waitForTimeout(100);assert.deepEqual(await page.evaluate(()=>fpsStudio.getState().position),paused);
+ };
+ await playFps('town');
+ await page.goto(base+'/index.html');await page.waitForFunction(()=>window.dungeonStudio);await page.locator('#play-fps').click();await page.waitForFunction(()=>window.fpsStudio);
+ assert.ok(await page.evaluate(()=>fpsStudio.getState().walls>0));await playFps('dungeon');
+ assert.deepEqual(errors,[]);
+ console.log('PASS: ordinary building clicks (4 sizes), create/edit/rotate/move, entrance/room sync, undo/redo, Markdown, PNG, real FPS pointer lock/movement/jump/shoot/reload/TPS/pause in town and dungeon');
+}finally{await browser.close();}

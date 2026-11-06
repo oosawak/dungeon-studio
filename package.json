@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node web/tests/scene-format.test.mjs",
+    "test": "node --test web/tests/*.test.mjs",
     "serve": "python3 -m http.server 8769 --bind 127.0.0.1 --directory web",
     "build:wasm": "bash scripts/build-wasm.sh"
   }

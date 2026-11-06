@@ -46,3 +46,24 @@ test('older compatible scene documents migrate to the independent format',()=>{
  const next=readScene(text);assert.equal(next.format,'dungeon-studio-scene');
  const saved=replaceSceneBlock(text,next);assert.ok(saved.includes('```dungeon-scene'));assert.ok(saved.endsWith('追記した説明\n'));assert.deepEqual(readScene(saved),next);
 });
+
+test('rotated buildings become runtime walls and preserve entrances through Markdown',async()=>{
+ const {createPlace}=await import('../campaign.js');
+ const {entranceForBuilding}=await import('../settlements.js');
+ for(const rotation of [0,90,180,270]){
+  const scene=createPlace('town');scene.buildings=[];scene.labels=[];
+  scene.cells=scene.cells.map((row,y)=>[...row].map((c,x)=>x===0||y===0||x===scene.width-1||y===scene.height-1?'#':'g').join(''));
+  scene.entities=[{kind:'spawn',x:28,y:20},{kind:'exit',x:31,y:22}];
+  const building={id:'test-house',x:12,y:10,w:4,h:3,rotation,roof:'slate',kind:'house',name:'回転する家',elevation:12};
+  scene.buildings.push(building);
+  const entry={kind:'portal',buildingId:building.id,...entranceForBuilding(building),target:'$return',label:building.name};scene.entities.push(entry);
+  const saved=readScene(writeScene(scene));assert.deepEqual(saved,scene);
+  const runtime=toRuntime(saved),w=rotation%180===90?3:4,h=rotation%180===90?4:3;
+  for(let y=10;y<10+h;y++)for(let x=12;x<12+w;x++)assert.equal(runtime.tiles[y*scene.width+x],1);
+  assert.equal(runtime.tiles[entry.y*scene.width+entry.x],16);
+  const broken=structuredClone(scene);broken.entities.at(-1).x++;
+  assert.throws(()=>writeScene(broken),/入口位置|重なる/);
+  const overlap=structuredClone(scene);overlap.buildings.push({...building,id:'overlap'});
+  assert.throws(()=>writeScene(overlap),/重なる/);
+ }
+});

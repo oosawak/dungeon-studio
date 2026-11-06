@@ -5,7 +5,7 @@ import {buildingContains,canPlaceBuilding,entranceForBuilding} from './settlemen
 const $=id=>document.getElementById(id),canvas=$('map'),ctx=canvas.getContext('2d'),CELL=24,pageKind=document.body.dataset.studio||'dungeon';
 let doc=pageKind==='dungeon'?generateScene(42):createCampaign(42),source=null;
 try{if(location.hash.startsWith('#scene='))doc=readScene(decodeURIComponent(location.hash.slice(7)));}catch(error){console.warn(error);}
-let locationId=pageKind==='town'?(doc.linkedMaps.find(e=>e.scene.mapKind==='town')?.id||'root'):'root',floorIndex=0,tool=pageKind==='dungeon'?'floor':'select',selection=null,history=[],future=[],gesture=null,zoom=0,space=false;
+let locationId=doc.startLocation==='root'||doc.linkedMaps.some(e=>e.id===doc.startLocation)?doc.startLocation:pageKind==='town'?(doc.linkedMaps.find(e=>e.scene.mapKind==='town')?.id||'root'):'root',floorIndex=0,tool=pageKind==='dungeon'?'floor':'select',selection=null,history=[],future=[],gesture=null,zoom=0,space=false;
 const place=()=>locationScene(doc,locationId),floor=()=>getFloor(place(),floorIndex),isAtlas=()=>['world','town'].includes(place().mapKind);
 const tools=[['select','↖ 選択・移動'],['pan','✥ 画面移動'],['grass','陸地・草地'],['forest','森・樹木'],['water','海・川'],['mountain','山脈'],['road','道を描く'],['building','建物を囲む'],['label','地名・ラベル'],['portal','町・入口'],['floor','床'],['wall','壁'],['door','鍵付き扉'],['pit','落とし穴'],['stairsDown','下り階段'],['stairsUp','上り階段'],['key','鍵'],['spawn','開始地点'],['exit','出口'],['enemy','敵'],['note','メモ'],['erase','消す']];
 const terrain={floor:'.',wall:'#',door:'+',pit:'O',stairsDown:'>',stairsUp:'<',grass:'g',forest:'f',water:'~',mountain:'^',road:'='};

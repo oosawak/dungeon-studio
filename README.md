@@ -10,7 +10,7 @@
 
 ## 開発状況・Macでの再開
 
-**2026-11-06時点の作業途中のスナップショットです。** 最新の実装、確認済み事項、既知の問題とMacでの起動方法は [引き継ぎメモ](docs/HANDOFF.md) を参照してください。FPS/TPSと新しい町・地図の編集機能には、未検証の箇所があります。
+**2026-11-06時点の作業途中のスナップショットです。** 最新の実装、確認済み事項、既知の問題とMacでの起動方法は [引き継ぎメモ](docs/HANDOFF.md) を参照してください。Macでの引き継ぎ検証は [検証レポート](docs/REPORT-2026-11-06-MAC.md) を参照してください。町の基本編集とFPS/TPSの基本操作はChromeで確認済みです。
 
 - [World Studio](https://oosawak.github.io/dungeon-studio/world.html)
 - [Town Studio](https://oosawak.github.io/dungeon-studio/town.html)
@@ -20,7 +20,7 @@
 ## World / Town / Dungeon
 
 - **World Studio** (`web/world.html`): 草地・森・水辺・山・道を描き、町や複数のダンジョンを配置します。
-- **Town Studio** (`web/town.html`): 建物ツールで敷地を囲むと建物と室内マップを作成します。大きさ・向き・屋根・高さを編集できます（新UIのブラウザー検証は未完了）。
+- **Town Studio** (`web/town.html`): 建物ツールで敷地を囲むと建物と室内マップを作成します。大きさ・向き・屋根・高さを編集できます（Chromeで基本編集のブラウザー検証済み）。
 - **Dungeon Studio** (`web/index.html`): ダンジョン・部屋・地下階層を編集します。
 
 World Studio の初期サンプルは「ワールド → 町 → 家・店」と2つのダンジョンを接続しています。「場所」の一覧で編集対象を切り替えます。別スタジオへのナビゲーションは新しい編集画面を開くため、切り替える前に Markdown を保存してください。
@@ -33,7 +33,11 @@ World Studio の初期サンプルは「ワールド → 町 → 家・店」と
 
 [INKBOUND](https://github.com/oosawak/INKBOUND) のMITコードをもとに、町やダンジョンを取り込む別画面を追加しました。エディターの「FPS / TPS で遊ぶ」から開きます。WASD移動、マウス視点、Spaceジャンプ、Shiftダッシュ、Ctrlスライド、Eグラップル、Rリロード、V視点切り替えの実装があります。
 
-**実操作の検証は未完了です。** dungeonloadとは別ランタイムで、鍵・扉・階層移動・家への出入り・戦闘状態の共有は未接続です。トゥームレイダーのような壁登り・縁につかまる動作やアニメーションも未実装です。
+**Chromeで町・ダンジョンの読み込み、マウス固定、移動、ジャンプ、射撃、リロード、FPS/TPS切り替え、一時停止を確認済みです。** 疾走・スライド・グラップルは今回の検証対象外です。 dungeonloadとは別ランタイムで、鍵・扉・階層移動・dungeonloadとの戦闘状態の共有は未接続です。トゥームレイダーのような壁登り・縁につかまる動作やアニメーションも未実装です。
+
+入口は青い枠で表示されます。近づいて **F** を押すと家・町・ダンジョンへ移動し、室内の「外へ戻る」入口で帰還できます。帰還時は場所ごとの位置と視点、敵・弾痕・Waveを復元し、HP・弾薬・スコアとFPS/TPSの選択を引き継ぎます。この状態はFPS内でページを開いている間だけ保持します。
+
+実装と検証の詳細は [FPS出入りレポート](docs/REPORT-2026-11-06-FPS-TRAVEL.md) を参照してください。
 
 ## 遊び方
 
@@ -91,7 +95,12 @@ Playwright を開発用に導入し、ローカルサーバーの起動後に実
 npm install --no-save playwright
 npx playwright install chromium
 node scripts/playtest.mjs
+node scripts/playtest-campaign.mjs
+node scripts/playtest-atlas.mjs
+node scripts/playtest-fps-travel.mjs
 ```
+
+インストール済みGoogle Chromeで実行する場合は、各コマンドに `PLAYWRIGHT_CHANNEL=chrome` を付けます。建物ボタンは強制クリックを使わず、4種類の画面サイズで検証します。
 
 `DUNGEON_STUDIO_URL` で対象 URL を変更できます。画像や保存ファイルは一時フォルダーへ出力します。
 
