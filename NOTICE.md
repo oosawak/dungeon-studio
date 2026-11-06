@@ -37,3 +37,14 @@ The bundled CSS header identifies the font as SIL OFL 1.1 and CSS as MIT. Upstre
 Tiny Dungeon 1.0, created/distributed by Kenney (www.kenney.nl), CC0.
 Original notice: `web/assets/kenney-tiny-dungeon/License.txt`.
 https://creativecommons.org/publicdomain/zero/1.0/
+
+## INKBOUND / FPS Studio
+
+`web/fps.html` adapts the browser FPS from https://github.com/oosawak/INKBOUND. MIT; full upstream notice: `web/licenses/INKBOUND-MIT.txt`.
+The adaptation adds scene imports from this editor and an experimental third-person camera.
+
+## Three.js 0.160.1
+
+FPS Studio uses `web/vendor/three-160.min.js`. Copyright 2010–2023 Three.js Authors. MIT.
+Full license: `web/licenses/Three-160-MIT.txt`.
+https://github.com/mrdoob/three.js/tree/r160

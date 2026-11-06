@@ -1,3 +1,4 @@
+import {canPlaceBuilding,buildingContains,entranceForBuilding} from './settlements.js';
 // Original Dungeon Studio scene format. No third-party editor code or schema.
 export const FORMAT = 'dungeon-studio-scene';
 export function validateScene(value, nested=false, linked=false) {
@@ -20,6 +21,19 @@ export function validateScene(value, nested=false, linked=false) {
     if(!entry||typeof entry.id!=='string'||!/^[a-zA-Z0-9_-]{1,60}$/.test(entry.id)||ids.has(entry.id))throw Error('場所IDが不正か重複しています。');
     ids.add(entry.id);return {id:entry.id,scene:validateScene(entry.scene,false,true)};
   });
+  d.buildings ??= [];d.labels ??= [];
+  if(!Array.isArray(d.buildings)||d.buildings.length>128||!Array.isArray(d.labels)||d.labels.length>200)throw Error('建物・地名の数が多すぎます。');
+  const buildingIds=new Set();
+  for(const b of d.buildings){
+    if(!b||typeof b.id!=='string'||buildingIds.has(b.id)||!Number.isInteger(b.x)||!Number.isInteger(b.y)||!Number.isInteger(b.w)||!Number.isInteger(b.h)||b.w<2||b.h<2||b.w>12||b.h>12||![0,90,180,270].includes(b.rotation||0)||typeof b.name!=='string'||b.name.length>60||!['tile','slate','thatch','flat'].includes(b.roof)||!['house','shop','inn','temple','tower'].includes(b.kind))throw Error('建物の設定が不正です。');
+    if(b.elevation!==undefined&&(!Number.isFinite(b.elevation)||b.elevation<2||b.elevation>40))throw Error('建物の高さは2〜40mです。');
+    buildingIds.add(b.id);
+    if(!canPlaceBuilding(d,b,b.id))throw Error('建物が重なるか、通れない地形にはみ出しています。');
+    const entry=d.entities.find(e=>e.kind==='portal'&&e.buildingId===b.id);
+    if(entry){const at=entranceForBuilding(b);if(entry.x!==at.x||entry.y!==at.y)throw Error('建物の入口位置が一致しません。');}
+  }
+  const labelIds=new Set();
+  for(const label of d.labels){if(!label||typeof label.id!=='string'||labelIds.has(label.id)||typeof label.text!=='string'||label.text.length>100||!Number.isFinite(label.x)||!Number.isFinite(label.y)||label.x<0||label.y<0||label.x>d.width||label.y>d.height||!Number.isFinite(label.size||20)||(label.size||20)<12||(label.size||20)>64||!Number.isFinite(label.rotation||0)||Math.abs(label.rotation||0)>180)throw Error('地名の設定が不正です。');labelIds.add(label.id);}
   const occupied = new Set();
   for (const e of d.entities) {
     if (!e || !['spawn','exit','enemy','note','key','portal'].includes(e.kind) || !Number.isInteger(e.x) || !Number.isInteger(e.y) || e.x < 1 || e.y < 1 || e.x >= d.width-1 || e.y >= d.height-1 || !['.','g','f','='].includes(d.cells[e.y][e.x])) throw Error('配置物は外周以外の床に置いてください。');
@@ -74,7 +88,7 @@ export function reachableCells(d) {
   const seen=new Set([spawn.y*d.width+spawn.x]),queue=[[spawn.x,spawn.y]];
   for(let i=0;i<queue.length;i++)for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
     const x=queue[i][0]+dx,y=queue[i][1]+dy,key=y*d.width+x;
-    if(x>=0&&y>=0&&x<d.width&&y<d.height&&!['#','O','~','^'].includes(d.cells[y][x])&&!seen.has(key)){seen.add(key);queue.push([x,y]);}
+    if(x>=0&&y>=0&&x<d.width&&y<d.height&&!['#','O','~','^'].includes(d.cells[y][x])&&!(d.buildings||[]).some(b=>buildingContains(b,x,y))&&!seen.has(key)){seen.add(key);queue.push([x,y]);}
   }
   return seen;
 }
@@ -85,6 +99,7 @@ export function toRuntime(value) {
     if(exit&&!reachableCells(f).has(exit.y*f.width+exit.x))throw Error(f.title+'：開始地点から出口に到達できません。');
     const codes={'#':1,'.':0,'+':7,'O':5,'>':3,'<':4,'g':10,'f':11,'~':12,'^':13,'=':14};
     const tiles=f.cells.join('').split('').map(c=>codes[c]);
+    for(const b of f.buildings||[]){const rotated=(b.rotation||0)%180===90,w=rotated?b.h:b.w,h=rotated?b.w:b.h;for(let y=b.y;y<b.y+h;y++)for(let x=b.x;x<b.x+w;x++)tiles[y*f.width+x]=1;}
     if(exit)tiles[exit.y*f.width+exit.x]=6;
     for(const e of f.entities.filter(e=>e.kind==='portal'))tiles[e.y*f.width+e.x]=16;
     for(const e of f.entities.filter(e=>e.kind==='key'))tiles[e.y*f.width+e.x]=9;

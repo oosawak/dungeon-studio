@@ -1092,7 +1092,7 @@ body.controls-swapped #movement-joystick {
 
 </head>
 <body>
-<div id="studio-import-bar"><a href="index.html" id="studio-edit">← マップ編集</a><a href="credits.html">Credits</a><span><a href="https://github.com/oosawak/markdown-cms" target="_blank" rel="noopener noreferrer" title="Markdown CMS の GitHub" style="color:inherit">Markdown CMS</a> × <a href="https://github.com/oosawak/rustgames" target="_blank" rel="noopener noreferrer" title="RUSTGAMES の GitHub" style="color:inherit">RUSTGAMES</a></span><button id="studio-load">Markdownを開く</button><button id="studio-enter" hidden>入る [E]</button><button id="studio-return" hidden>前の場所へ戻る</button><button id="studio-retry">シーンを再開</button><span id="studio-status" role="status">シーン読込待ち</span><span id="studio-note" hidden></span><input id="studio-file" type="file" accept=".md,.markdown,.json" hidden></div>
+<div id="studio-import-bar"><a href="index.html" id="studio-edit">← マップ編集</a><a href="credits.html">Credits</a><span><a href="https://github.com/oosawak/markdown-cms-oss" target="_blank" rel="noopener noreferrer" title="Markdown CMS の GitHub" style="color:inherit">Markdown CMS</a> × <a href="https://github.com/oosawak/rustgames" target="_blank" rel="noopener noreferrer" title="RUSTGAMES の GitHub" style="color:inherit">RUSTGAMES</a></span><button id="studio-load">Markdownを開く</button><button id="studio-enter" hidden>入る [E]</button><button id="studio-return" hidden>前の場所へ戻る</button><button id="studio-retry">シーンを再開</button><span id="studio-status" role="status">シーン読込待ち</span><span id="studio-note" hidden></span><input id="studio-file" type="file" accept=".md,.markdown,.json" hidden></div>
 <style>#studio-import-bar{position:fixed;bottom:8px;left:8px;right:8px;z-index:2500;display:flex;gap:8px;align-items:center;padding:8px;background:#102430f2;border:1px solid #37616d;border-radius:8px;font:12px DenkiChip, sans-serif}#studio-import-bar a{color:#b9e8df}#studio-import-bar button{font-family:DenkiChip,sans-serif;cursor:pointer;padding:6px 10px;color:#e6f8ff;background:#264956;border:1px solid #59818a;border-radius:4px}#studio-import-bar{font-family:DenkiChip,sans-serif;flex-wrap:wrap}#studio-note{flex-basis:100%;max-height:70px;overflow:auto;white-space:pre-wrap;color:#f2d9a7}#tiny-toggle{right:186px!important}#no-damage-quick-toggle{right:66px!important}#studio-status{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}</style>
 
 <div style="position: absolute; left: -9999px; font-family: RPGAwesome; font-size: 1px;">
@@ -1319,11 +1319,13 @@ body.controls-swapped #movement-joystick {
   <span class="sh-arrow sh-right">▶</span>
 </div>
 <script type="module">
-import init, * as wasm from './wasm/wasm_dungeonload.js?canvas-scale=1&ui=32&pit=10&v=20261106-studio2';
-import { FontLoader, InputManager } from './engine.js?v=20261106-studio2';
-import { createDungeonLoadUi } from './ui.js?overlay=16&v=20261106-studio2';
-import { readScene, toRuntime, getFloor, locationScene, validateConnections } from './scene-format.js?v=20261106-studio2';
-import {pathToPlace} from './campaign.js?v=20261106-studio2';
+import init, * as wasm from './wasm/wasm_dungeonload.js?canvas-scale=1&ui=32&pit=10&v=atlas3';
+import { FontLoader, InputManager } from './engine.js?v=atlas3';
+import { createDungeonLoadUi } from './ui.js?overlay=16&v=atlas3';
+import { readScene, toRuntime, getFloor, locationScene, validateConnections } from './scene-format.js?v=atlas3';
+import {pathToPlace} from './campaign.js?v=atlas3';
+import {renderAtlasGame,addTownBuildings} from './atlas-runtime.js?v=atlas3';
+import {buildingContains} from './settlements.js?v=atlas3';
 window.wasm = wasm;
 const ui = createDungeonLoadUi({ wasm });
 
@@ -1596,7 +1598,7 @@ function enterDungeon() {
 
 async function start() {
   try {
-    await init({module_or_path:new URL('./wasm/wasm_dungeonload_bg.wasm?v=20261106-studio2',import.meta.url)});
+    await init({module_or_path:new URL('./wasm/wasm_dungeonload_bg.wasm?v=atlas3',import.meta.url)});
     await FontLoader.load('DenkiChip', wasm, {fontUrl:new URL('./fonts/x8y12pxDenkiChip.woff2',import.meta.url).href});
     wasm.init_roguelike();
     ui.applyGamePalette();
@@ -1941,6 +1943,7 @@ function updateTabContent(tabName) { ui.updateTabContent(tabName); }
 function drawDungeonMap() { ui.drawDungeonMap(); }
 let scene, camera, renderer;
 let cubes = [];
+let terrainSignature="";
 let playerCube, enemies3d = [];
 let enemyHudSprites = [], worldIconSprites = [], damageSprites = [], attackEffectSprites = [], projectileSprites = [];
 let is3dMode = true;
@@ -2186,12 +2189,14 @@ function init3d() {
 }
 function updateDungeon3d() {
   if (!scene) init3d();
-  cubes.forEach(cube => {
-    scene.remove(cube);
-    cube.geometry.dispose();
-    cube.material.dispose();
-  });
-  cubes = [];
+  const mapWidth = wasm.map_width_roguelike(),mapHeight = wasm.map_height_roguelike(),playerX = wasm.player_x_roguelike(),playerY = wasm.player_y_roguelike(),mapData = wasm.map_data_roguelike();
+  const floorData=importedScene?getFloor(importedScene,wasm.depth_roguelike()-1):null;
+  let hash=0;for(const tile of mapData)hash=(hash*31+tile)|0;
+  const signature=currentPlaceId+':'+wasm.depth_roguelike()+':'+playerX+','+playerY+':'+hash;
+  const rebuildTerrain=signature!==terrainSignature;terrainSignature=signature;
+  if(rebuildTerrain){for(const cube of cubes){scene.remove(cube);disposeThreeObject(cube);}cubes=[];clearThreeObjects(worldIconSprites);}
+  const outdoor=importedScene&&['world','town'].includes(importedScene.mapKind);
+  scene.background.setHex(outdoor?0xb9ccbd:0x000008);
   if (playerCube) {
     scene.remove(playerCube);
     playerCube.geometry.dispose();
@@ -2203,16 +2208,11 @@ function updateDungeon3d() {
     disposeThreeObject(e);
   });
   enemies3d = [];
-  clearThreeObjects(worldIconSprites);
   clearThreeObjects(enemyHudSprites);
   clearThreeObjects(damageSprites);
   clearThreeObjects(attackEffectSprites);
   clearThreeObjects(projectileSprites);
-  const mapWidth = wasm.map_width_roguelike();
-  const mapHeight = wasm.map_height_roguelike();
-  const playerX = wasm.player_x_roguelike();
-  const playerY = wasm.player_y_roguelike();
-  const mapData = wasm.map_data_roguelike();
+
   const viewRadius = 18;
   const minX = Math.max(0, playerX - viewRadius);
   const maxX = Math.min(mapWidth - 1, playerX + viewRadius);
@@ -2220,6 +2220,7 @@ function updateDungeon3d() {
   const maxY = Math.min(mapHeight - 1, playerY + viewRadius);
   // The camera is on the +Y side, so reveal the floor tile immediately
   // below a down staircase without changing any surrounding walls.
+  if(rebuildTerrain){
   const downStairLowerFloors = new Set();
   for (let y = minY; y <= maxY; y++) {
     for (let x = minX; x <= maxX; x++) {
@@ -2231,7 +2232,8 @@ function updateDungeon3d() {
   for (let y = minY; y <= maxY; y++) {
     for (let x = minX; x <= maxX; x++) {
       const idx = y * mapWidth + x;
-      const tile = mapData[idx];
+      let tile = mapData[idx];
+      if(floorData?.buildings?.some(b=>buildingContains(b,x,y)))tile=10;
       let color = 0x555577;
       let h = 0.2;
       if (tile === 1) { color = 0x333344; h = 2.0; }
@@ -2241,9 +2243,9 @@ function updateDungeon3d() {
       else if(tile===8){color=0x547b54;h=0.2;}
       else if(tile===9){color=0x446688;h=0.2;}
       else if(tile===10){color=0x68945c;h=0.16;}
-      else if(tile===11){color=0x355d35;h=0.45;}
+      else if(tile===11){color=0x66865c;h=0.16;}
       else if(tile===12){color=0x29668c;h=0.05;}
-      else if(tile===13){color=0x797d78;h=1.8;}
+      else if(tile===13){color=0x979a84;h=0.16;}
       else if(tile===14){color=0xb19a73;h=0.17;}
       else if(tile===16){color=0xa47c56;h=1.6;}
       if (tile === 5 || tile === 6) {
@@ -2311,7 +2313,13 @@ function updateDungeon3d() {
       scene.add(cube);
       cubes.push(cube);
 
-      if(tile===16){
+      if(tile===11||tile===13){
+        const mountain=tile===13;
+        const tree=new THREE.Mesh(new THREE.ConeGeometry(mountain?.8:.45,mountain?2.7:1.6,mountain?5:7),new THREE.MeshLambertMaterial({color:mountain?0x9c9e8d:0x41664a}));
+        tree.position.set(x,mountain?1.5:1.2,y);scene.add(tree);cubes.push(tree);
+        if(!mountain){const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.07,.1,.6,5),new THREE.MeshLambertMaterial({color:0x7c6b4d}));trunk.position.set(x,.45,y);scene.add(trunk);cubes.push(trunk);}
+      }
+      if(tile===16&&!floorData?.entities.some(e=>e.kind==='portal'&&e.x===x&&e.y===y&&e.buildingId)){
         const f=importedScene?getFloor(importedScene,wasm.depth_roguelike()-1):null;
         const portal=f?.entities.find(e=>e.kind==='portal'&&e.x===x&&e.y===y);
         const roof=new THREE.Mesh(new THREE.ConeGeometry(0.8,0.65,4),new THREE.MeshLambertMaterial({color:portal?.style==='house'?0x9d493c:portal?.style==='town'?0x527aac:0x4b565d}));
@@ -2351,6 +2359,8 @@ function updateDungeon3d() {
         worldIconSprites.push(labelSprite);
       }
     }
+  }
+  if(floorData)addTownBuildings(THREE,scene,cubes,floorData,{minX,maxX,minY,maxY});
   }
   if (playerModel) {
     if (playerModel.parent !== scene) {
@@ -2704,7 +2714,8 @@ function renderCanvas() {
   const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
   canvas.style.width = `${width}px`;
   canvas.style.height = `${height}px`;
-  wasm.render_roguelike('game-canvas', Math.round(width * pixelRatio), Math.round(height * pixelRatio));
+  if(importedScene&&['world','town'].includes(importedScene.mapKind))renderAtlasGame(canvas,getFloor(importedScene,wasm.depth_roguelike()-1),wasm,Math.round(width*pixelRatio),Math.round(height*pixelRatio));
+  else wasm.render_roguelike('game-canvas', Math.round(width * pixelRatio), Math.round(height * pixelRatio));
 }
 
 let importedScene=null,campaignRoot=null,currentPlaceId='root',travelHistory=[];
@@ -2713,6 +2724,7 @@ function activateStudioScene(doc) {
   currentPlaceId=doc.startLocation||'root';
   importedScene=locationScene(campaignRoot,currentPlaceId);
   travelHistory=pathToPlace(campaignRoot,currentPlaceId).slice(0,-1);
+  terrainSignature="";
   wasm.load_studio_scene(JSON.stringify(toRuntime(importedScene)));
   partyBattleActive=false;
   document.getElementById('title-screen').style.display='none';

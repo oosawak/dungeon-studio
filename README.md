@@ -1,6 +1,6 @@
 # Dungeon Studio
 
-**[Markdown CMS](https://github.com/oosawak/markdown-cms) × [RUSTGAMES](https://github.com/oosawak/rustgames)**
+**[Markdown CMS](https://github.com/oosawak/markdown-cms-oss) × [RUSTGAMES](https://github.com/oosawak/rustgames)**
 
 表示フォントには [でんきチップ（DenkiChip）](https://github.com/hicchicc/x8y12pxDenkiChip) を使用しています。
 
@@ -8,10 +8,19 @@
 
 床・壁・鍵付き扉・落とし穴・階段を描き、開始地点・出口・敵・鍵・メモを配置できます。シード指定の迷宮生成、最大10フロア、Markdown の保存と読み込みに対応します。ゲームの移動・戦闘・状態管理には [rustgames の DUNGEON//LOAD](https://github.com/oosawak/rustgames) を使っています。
 
+## 開発状況・Macでの再開
+
+**2026-11-06時点の作業途中のスナップショットです。** 最新の実装、確認済み事項、既知の問題とMacでの起動方法は [引き継ぎメモ](docs/HANDOFF.md) を参照してください。FPS/TPSと新しい町・地図の編集機能には、未検証の箇所があります。
+
+- [World Studio](https://oosawak.github.io/dungeon-studio/world.html)
+- [Town Studio](https://oosawak.github.io/dungeon-studio/town.html)
+- [Dungeon Studio](https://oosawak.github.io/dungeon-studio/)
+- [FPS Studio（実験版）](https://oosawak.github.io/dungeon-studio/fps.html)
+
 ## World / Town / Dungeon
 
 - **World Studio** (`web/world.html`): 草地・森・水辺・山・道を描き、町や複数のダンジョンを配置します。
-- **Town Studio** (`web/town.html`): 道や建物を配置し、「＋家の部屋」で建物内のマップを作れます。
+- **Town Studio** (`web/town.html`): 建物ツールで敷地を囲むと建物と室内マップを作成します。大きさ・向き・屋根・高さを編集できます（新UIのブラウザー検証は未完了）。
 - **Dungeon Studio** (`web/index.html`): ダンジョン・部屋・地下階層を編集します。
 
 World Studio の初期サンプルは「ワールド → 町 → 家・店」と2つのダンジョンを接続しています。「場所」の一覧で編集対象を切り替えます。別スタジオへのナビゲーションは新しい編集画面を開くため、切り替える前に Markdown を保存してください。
@@ -19,6 +28,12 @@ World Studio の初期サンプルは「ワールド → 町 → 家・店」と
 ゲームでは入口に隣接し **E** または画面下の入口ボタンで入ります。外へ出る入口、または試作用の「前の場所へ戻る」ボタンで戻れます。以前の場所のプレイヤー位置・開けた扉・鍵の取得状態・敵の状態を保持し、HP・MP・鍵・所持品・装備・経験値を引き継ぎます。これらの進行はページを閉じると失われます。
 
 建物や町の3D表示は単純な形状を用いた試作です。NPC会話・売買・宿泊などの町の生活機能はまだありません。
+
+## FPS Studio（作業途中）
+
+[INKBOUND](https://github.com/oosawak/INKBOUND) のMITコードをもとに、町やダンジョンを取り込む別画面を追加しました。エディターの「FPS / TPS で遊ぶ」から開きます。WASD移動、マウス視点、Spaceジャンプ、Shiftダッシュ、Ctrlスライド、Eグラップル、Rリロード、V視点切り替えの実装があります。
+
+**実操作の検証は未完了です。** dungeonloadとは別ランタイムで、鍵・扉・階層移動・家への出入り・戦闘状態の共有は未接続です。トゥームレイダーのような壁登り・縁につかまる動作やアニメーションも未実装です。
 
 ## 遊び方
 
@@ -46,6 +61,8 @@ World Studio の初期サンプルは「ワールド → 町 → 家・店」と
 
 - `cells`: 地形の行配列（`#` 壁、`.` 床、`+` 鍵付き扉、`O` 落とし穴、`>` 下り階段、`<` 上り階段、`g` 草地、`f` 森、`~` 水辺、`^` 山、`=` 道）
 - `entities`: `spawn` / `exit` / `enemy` / `key` / `note` / `portal`
+- `buildings`: 建物の位置・幅・奥行き・向き・屋根・用途・名前・高さ。ゲーム用には占有セルを壁に変換します。
+- `labels`: 地名の文字列・位置・サイズ・角度
 - `initialKeys`: 開始時の鍵の数
 - `mapKind`: `world` / `town` / `dungeon` / `interior`
 - `linkedMaps`: IDとシーンを持つ接続先の一覧（31件まで）。入口は `portal` 配置物の `target` で接続します。`$return` は入ってきた場所です。

@@ -32,7 +32,7 @@ test('world/town/interior graph survives Markdown and has valid destinations',as
  const {createCampaign,createPlace,placeEntrance,pathToPlace}=await import('../campaign.js');
  const {validateConnections,locationScene}=await import('../scene-format.js');
  const world=validateConnections(createCampaign(42));
- assert.equal(world.mapKind,'world');assert.equal(world.linkedMaps.length,5);
+ assert.equal(world.mapKind,'world');assert.equal(world.linkedMaps.length,19);
  assert.deepEqual(readScene(writeScene(world)),world);
  for(const entry of world.linkedMaps)assert.ok(toRuntime(entry.scene).tiles.length>0);
  assert.deepEqual(pathToPlace(world,'house'),['root','town','house']);
