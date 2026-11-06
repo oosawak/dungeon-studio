@@ -1,6 +1,6 @@
 # Dungeon Studio
 
-**Markdown CMS × RUSTGAMES**
+**[Markdown CMS](https://github.com/oosawak/markdown-cms) × [RUSTGAMES](https://github.com/oosawak/rustgames)**
 
 表示フォントには [でんきチップ（DenkiChip）](https://github.com/hicchicc/x8y12pxDenkiChip) を使用しています。
 
