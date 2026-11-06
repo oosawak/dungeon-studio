@@ -4,9 +4,9 @@
 
 ここに冒険の説明を書けます。下のデータには配置した敵やメモも含まれます。
 
-```mindzj-scene
+```dungeon-scene
 {
-  "format": "mindzj-dungeon-scene",
+  "format": "dungeon-studio-scene",
   "version": 1,
   "title": "地下書庫 42",
   "seed": 42,

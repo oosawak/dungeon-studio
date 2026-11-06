@@ -42,7 +42,7 @@ World Studio の初期サンプルは「ワールド → 町 → 家・店」と
 
 ## 保存形式
 
-`mindzj-scene` コードブロックに編集用 JSON を格納した `.md` ファイルを保存します。読み込んだ Markdown のブロック外の文章は、再保存時にも保持します。
+`dungeon-scene` コードブロックに編集用 JSON を格納した `.md` ファイルを保存します。読み込んだ Markdown のブロック外の文章は、再保存時にも保持します。
 
 - `cells`: 地形の行配列（`#` 壁、`.` 床、`+` 鍵付き扉、`O` 落とし穴、`>` 下り階段、`<` 上り階段、`g` 草地、`f` 森、`~` 水辺、`^` 山、`=` 道）
 - `entities`: `spawn` / `exit` / `enemy` / `key` / `note` / `portal`
@@ -101,7 +101,7 @@ cargo test --manifest-path runtime/Cargo.toml --locked
 - `web/scene-format.js`: Markdown 保存形式・検証・迷宮生成
 - `web/campaign.js`: 町・ワールド・建物内の生成と接続サンプル
 - `web/play.html`, `ui.js`, `engine.js`: dungeonload をもとにした試遊画面
-- `runtime/src/mindzj.rs`: シーンの読み込みと検証
+- `runtime/src/studio_scene.rs`: シーンの読み込みと検証
 - `runtime/src/state.rs`: ゲーム状態・鍵・扉・フロア移動
 - `web/licenses/`, `NOTICE.md`: 利用素材の表記
 

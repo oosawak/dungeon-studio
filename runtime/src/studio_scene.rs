@@ -47,11 +47,11 @@ fn build_game(s:ImportedScene)->Result<RoguelikeGame,&'static str> {
     g.player_x=first.spawn[0];g.player_y=first.spawn[1];g.player_direction=2;
     g.inventory[5]=s.initial_keys;g.scene=state::RogueScene::Playing;g.rooms.clear();
     g.visited=vec![vec![true;g.map_width as usize];g.map_height as usize];
-    g.messages=vec!["MindZJ scene loaded. Keys open locked doors.".into()];g.enemy_shake=vec![0;g.enemies.len()];
+    g.messages=vec!["Dungeon Studio scene loaded. Keys open locked doors.".into()];g.enemy_shake=vec![0;g.enemies.len()];
     Ok(g)
 }
 #[wasm_bindgen]
-pub fn load_mindzj_scene(json:&str)->Result<(),JsValue> {
+pub fn load_studio_scene(json:&str)->Result<(),JsValue> {
     if json.len()>2_000_000 {return Err(JsValue::from_str("Scene too large"));}
     let s:ImportedScene=serde_json::from_str(json).map_err(|_|JsValue::from_str("Invalid scene JSON"))?;
     let game=build_game(s).map_err(|e|JsValue::from_str(e))?;
@@ -95,9 +95,9 @@ mod tests {
         DUNGEONLOAD_STATE.with(|slot|*slot.borrow_mut()=Some(g));
         let f=floor();
         let json=serde_json::json!({"width":f.width,"height":f.height,"tiles":f.tiles,"spawn":f.spawn,"enemies":[]}).to_string();
-        assert!(travel_mindzj_scene("world","town",&json).is_ok());
+        assert!(travel_studio_scene("world","town",&json).is_ok());
         DUNGEONLOAD_STATE.with(|slot|{let mut b=slot.borrow_mut();let g=b.as_mut().unwrap();assert_eq!(g.hp,37);assert_eq!(g.inventory[5],0);g.inventory[5]=4;});
-        assert!(travel_mindzj_scene("town","world",&json).is_ok());
+        assert!(travel_studio_scene("town","world",&json).is_ok());
         DUNGEONLOAD_STATE.with(|slot|{let b=slot.borrow();let g=b.as_ref().unwrap();assert!(g.map[2][3]==state::TileType::OpenDoor);assert_eq!(g.player_x,3);assert_eq!(g.inventory[5],4);});
     }
     #[test]
@@ -108,7 +108,7 @@ thread_local! {
     static CAMPAIGN_CACHE: std::cell::RefCell<std::collections::HashMap<String,RoguelikeGame>> = std::cell::RefCell::new(std::collections::HashMap::new());
 }
 #[wasm_bindgen]
-pub fn travel_mindzj_scene(from:&str,to:&str,json:&str)->Result<(),JsValue> {
+pub fn travel_studio_scene(from:&str,to:&str,json:&str)->Result<(),JsValue> {
     if from==to||from.len()>80||to.len()>80||json.len()>2_000_000{return Err(JsValue::from_str("Invalid destination"));}
     let scene:ImportedScene=serde_json::from_str(json).map_err(|_|JsValue::from_str("Invalid scene"))?;
     let fresh=build_game(scene).map_err(|e|JsValue::from_str(e))?;

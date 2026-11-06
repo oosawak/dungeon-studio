@@ -1,5 +1,5 @@
-import {generateScene,readScene,writeScene,replaceSceneBlock,toRuntime,reachableCells,getFloor,locationScene,validateConnections} from './scene-format.js?v=20261106-denki1';
-import {createCampaign,createPlace,placeEntrance} from './campaign.js?v=20261106-denki1';
+import {generateScene,readScene,writeScene,replaceSceneBlock,toRuntime,reachableCells,getFloor,locationScene,validateConnections} from './scene-format.js?v=20261106-studio2';
+import {createCampaign,createPlace,placeEntrance} from './campaign.js?v=20261106-studio2';
 const pageKind=document.body.dataset.studio||'dungeon';
 const $=id=>document.getElementById(id),canvas=$('map'),ctx=canvas.getContext('2d'),CELL=18;
 let doc=pageKind==='dungeon'?generateScene(42):createCampaign(42);

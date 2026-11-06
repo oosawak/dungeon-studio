@@ -1,5 +1,9 @@
-# mindzj 内で試す
+# ローカルで試す
 
-このリポジトリを Vault として開き、`web/index.html` を HTML プレビューで開きます。`web/.mindzj-preview.json` は、WASM や JavaScript モジュールの読み込みに必要な、フォルダー単位の設定です。
+リポジトリのルートで `npm run serve` を実行し、`http://127.0.0.1:8769/` を開きます。
 
-通常のブラウザーでは README のローカル起動手順を使ってください。
+- `world.html`: World Studio
+- `town.html`: Town Studio
+- `index.html`: Dungeon Studio
+
+WASM と JavaScript モジュールを使用するため、ファイルを直接開く方式では動作しません。

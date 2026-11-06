@@ -209,14 +209,6 @@ export function jump_to_floor_roguelike(depth) {
 /**
  * @returns {number}
  */
-export function keys_mindzj() {
-    const ret = wasm.keys_mindzj();
-    return ret >>> 0;
-}
-
-/**
- * @returns {number}
- */
 export function level_roguelike() {
     const ret = wasm.level_roguelike();
     return ret >>> 0;
@@ -225,12 +217,12 @@ export function level_roguelike() {
 /**
  * @param {string} json
  */
-export function load_mindzj_scene(json) {
+export function load_studio_scene(json) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
         const ptr0 = passStringToWasm0(json, wasm.__wbindgen_export, wasm.__wbindgen_export2);
         const len0 = WASM_VECTOR_LEN;
-        wasm.load_mindzj_scene(retptr, ptr0, len0);
+        wasm.load_studio_scene(retptr, ptr0, len0);
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         if (r1) {
@@ -478,6 +470,14 @@ export function start_game_roguelike() {
 }
 
 /**
+ * @returns {number}
+ */
+export function studio_keys() {
+    const ret = wasm.studio_keys();
+    return ret >>> 0;
+}
+
+/**
  * @param {number} ts
  */
 export function tick_roguelike(ts) {
@@ -489,7 +489,7 @@ export function tick_roguelike(ts) {
  * @param {string} to
  * @param {string} json
  */
-export function travel_mindzj_scene(from, to, json) {
+export function travel_studio_scene(from, to, json) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
         const ptr0 = passStringToWasm0(from, wasm.__wbindgen_export, wasm.__wbindgen_export2);
@@ -498,7 +498,7 @@ export function travel_mindzj_scene(from, to, json) {
         const len1 = WASM_VECTOR_LEN;
         const ptr2 = passStringToWasm0(json, wasm.__wbindgen_export, wasm.__wbindgen_export2);
         const len2 = WASM_VECTOR_LEN;
-        wasm.travel_mindzj_scene(retptr, ptr0, len0, ptr1, len1, ptr2, len2);
+        wasm.travel_studio_scene(retptr, ptr0, len0, ptr1, len1, ptr2, len2);
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         if (r1) {

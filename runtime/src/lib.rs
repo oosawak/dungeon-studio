@@ -1,4 +1,4 @@
-mod mindzj;
+mod studio_scene;
 // DUNGEON//LOAD - 独立した WASM エントリーポイント
 
 mod state;
@@ -529,6 +529,6 @@ pub fn unequip_accessory_roguelike() {
 }
 
 #[wasm_bindgen]
-pub fn keys_mindzj() -> u32 {
+pub fn studio_keys() -> u32 {
     DUNGEONLOAD_STATE.with(|s|s.borrow().as_ref().map(|g|g.inventory[5]).unwrap_or(0))
 }

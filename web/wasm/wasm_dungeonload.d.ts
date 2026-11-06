@@ -37,11 +37,9 @@ export function inventory_roguelike(): Uint32Array;
 
 export function jump_to_floor_roguelike(depth: number): void;
 
-export function keys_mindzj(): number;
-
 export function level_roguelike(): number;
 
-export function load_mindzj_scene(json: string): void;
+export function load_studio_scene(json: string): void;
 
 export function map_data_roguelike(): Uint8Array;
 
@@ -97,9 +95,11 @@ export function set_start_depth_roguelike(depth: number): void;
 
 export function start_game_roguelike(): void;
 
+export function studio_keys(): number;
+
 export function tick_roguelike(ts: number): void;
 
-export function travel_mindzj_scene(from: string, to: string, json: string): void;
+export function travel_studio_scene(from: string, to: string, json: string): void;
 
 export function unequip_accessory_roguelike(): void;
 
@@ -135,9 +135,8 @@ export interface InitOutput {
     readonly init_roguelike: () => void;
     readonly inventory_roguelike: (a: number) => void;
     readonly jump_to_floor_roguelike: (a: number) => void;
-    readonly keys_mindzj: () => number;
     readonly level_roguelike: () => number;
-    readonly load_mindzj_scene: (a: number, b: number, c: number) => void;
+    readonly load_studio_scene: (a: number, b: number, c: number) => void;
     readonly map_data_roguelike: (a: number) => void;
     readonly map_height_roguelike: () => number;
     readonly map_width_roguelike: () => number;
@@ -165,8 +164,9 @@ export interface InitOutput {
     readonly set_run_seed_roguelike: (a: number) => void;
     readonly set_start_depth_roguelike: (a: number) => void;
     readonly start_game_roguelike: () => void;
+    readonly studio_keys: () => number;
     readonly tick_roguelike: (a: number) => void;
-    readonly travel_mindzj_scene: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+    readonly travel_studio_scene: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
     readonly unequip_accessory_roguelike: () => void;
     readonly unequip_armor_roguelike: () => void;
     readonly unequip_weapon_roguelike: () => void;

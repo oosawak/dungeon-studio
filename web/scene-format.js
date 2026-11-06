@@ -1,8 +1,8 @@
-// Original MindZJ scene format. No third-party editor code or schema.
-export const FORMAT = 'mindzj-dungeon-scene';
+// Original Dungeon Studio scene format. No third-party editor code or schema.
+export const FORMAT = 'dungeon-studio-scene';
 export function validateScene(value, nested=false, linked=false) {
   const d = structuredClone(value);
-  if (!d || d.format !== FORMAT || d.version !== 1) throw Error('MindZJ Dungeon Scene v1 のファイルを選んでください。');
+  if (!d || d.format !== FORMAT || d.version !== 1) throw Error('Dungeon Studio Scene v1 のファイルを選んでください。');
   if (!Number.isInteger(d.width) || !Number.isInteger(d.height) || d.width < 5 || d.width > 160 || d.height < 5 || d.height > 120) throw Error('サイズは5〜160列、5〜120行です。');
   if (typeof d.title !== 'string' || d.title.length > 120 || !Array.isArray(d.cells) || d.cells.length !== d.height || d.cells.some(r => typeof r !== 'string' || r.length !== d.width || /[^#.+O<>gf~^=]/.test(r))) throw Error('タイトルかマップのデータが不正です。');
   if (!Array.isArray(d.entities) || d.entities.length > 256) throw Error('配置物が多すぎます。');
@@ -37,20 +37,37 @@ export function validateScene(value, nested=false, linked=false) {
 export function writeScene(value) {
   const d=validateScene(value),json=JSON.stringify(d,null,2);
   const fence='`'.repeat(Math.max(3,...(json.match(/`+/g)||[]).map(s=>s.length+1)));
-  return '# '+d.title.replace(/[\r\n]/g,' ')+'\n\n## シナリオ\n\nここに冒険の説明を書けます。下のデータには配置した敵やメモも含まれます。\n\n'+fence+'mindzj-scene\n'+json+'\n'+fence+'\n';
+  return '# '+d.title.replace(/[\r\n]/g,' ')+'\n\n## シナリオ\n\nここに冒険の説明を書けます。下のデータには配置した敵やメモも含まれます。\n\n'+fence+'dungeon-scene\n'+json+'\n'+fence+'\n';
+}
+// Older version-1 documents with this scene structure can be imported without
+// keeping an application-specific format name in the current schema or API.
+function normalizeImportedScene(value){
+  if(!value||typeof value.format!=='string'||value.version!==1||!Array.isArray(value.cells)||!Array.isArray(value.entities))throw Error('シーンのデータが不正です。');
+  const d=structuredClone(value);d.format=FORMAT;
+  if(Array.isArray(d.lowerFloors))d.lowerFloors=d.lowerFloors.map(normalizeImportedScene);
+  if(Array.isArray(d.linkedMaps))d.linkedMaps=d.linkedMaps.map(entry=>({...entry,scene:normalizeImportedScene(entry.scene)}));
+  return validateScene(d);
+}
+function sceneBlocks(text){
+  const lines=text.split(/\r?\n/),blocks=[];
+  for(let i=0;i<lines.length;i++){
+    const open=/^(`{3,})([a-zA-Z0-9_-]+)\s*$/.exec(lines[i]);
+    if(!open||(!open[2].endsWith('scene')&&open[2]!=='json'))continue;
+    const start=i,first=++i;while(i<lines.length&&lines[i]!==open[1])i++;
+    if(i===lines.length){if(open[2]==='dungeon-scene')throw Error('データのコードブロックが閉じられていません。');break;}
+    let raw;
+    try{raw=JSON.parse(lines.slice(first,i).join('\n'));}catch(error){if(open[2]==='dungeon-scene')throw Error('シーンのJSONが不正です。');continue;}
+    if(raw?.version===1&&typeof raw.format==='string'&&Array.isArray(raw.cells)&&Array.isArray(raw.entities))blocks.push({start,end:i,value:normalizeImportedScene(raw)});
+    else if(open[2]==='dungeon-scene')throw Error('シーンのデータが不正です。');
+  }
+  return {lines,blocks};
 }
 export function readScene(text) {
   if(typeof text!=='string'||text.length>2_000_000)throw Error('シーンは2MB以内です。');
-  if(text.trimStart().startsWith('{'))return validateScene(JSON.parse(text));
-  const lines=text.split(/\r?\n/),blocks=[];
-  for(let i=0;i<lines.length;i++){
-    const start=/^(`{3,})mindzj-scene\s*$/.exec(lines[i]);if(!start)continue;
-    const first=++i;while(i<lines.length&&lines[i]!==start[1])i++;
-    if(i===lines.length)throw Error('データのコードブロックが閉じられていません。');
-    blocks.push(lines.slice(first,i).join('\n'));
-  }
-  if(blocks.length!==1)throw Error('mindzj-scene ブロックが1つ必要です。');
-  return validateScene(JSON.parse(blocks[0]));
+  if(text.trimStart().startsWith('{'))return normalizeImportedScene(JSON.parse(text));
+  const {blocks}=sceneBlocks(text);
+  if(blocks.length!==1)throw Error('シーンのデータブロックが1つ必要です。');
+  return blocks[0].value;
 }
 export function reachableCells(d) {
   const spawn=d.entities.find(e=>e.kind==='spawn');if(!spawn)return new Set();
@@ -110,17 +127,11 @@ export function generateScene(seed=42,width=48,height=32) {
 export function replaceSceneBlock(original,doc) {
   readScene(original);
   if(original.trimStart().startsWith('{'))return writeScene(doc);
-  const lines=original.split(/\r?\n/);
-  for(let i=0;i<lines.length;i++){
-    const open=/^(`{3,})mindzj-scene\s*$/.exec(lines[i]);if(!open)continue;
-    let end=i+1;while(end<lines.length&&lines[end]!==open[1])end++;
-    const fresh=writeScene(doc),start=fresh.indexOf('\n```')+1;
-    lines.splice(i,end-i+1,...fresh.slice(start).trimEnd().split('\n'));
-    return lines.join('\n');
-  }
-  throw Error('シーンブロックがありません。');
+  const {lines,blocks}=sceneBlocks(original),block=blocks[0];
+  const fresh=writeScene(doc),start=fresh.indexOf('\n```')+1;
+  lines.splice(block.start,block.end-block.start+1,...fresh.slice(start).trimEnd().split('\n'));
+  return lines.join('\n');
 }
-
 export function locationScene(project,id='root') {
   if(id==='root')return project;
   const found=project.linkedMaps?.find(entry=>entry.id===id);

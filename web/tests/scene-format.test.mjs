@@ -39,3 +39,10 @@ test('world/town/interior graph survives Markdown and has valid destinations',as
  assert.equal(locationScene(world,'town').mapKind,'town');
  const town=createPlace('town');town.entities=town.entities.filter(e=>e.kind!=='exit');placeEntrance(town,'missing','未接続');assert.throws(()=>validateConnections(town),/移動先/);
 });
+
+test('older compatible scene documents migrate to the independent format',()=>{
+ const d=generateScene(7);d.format='prototype-scene';
+ const text='# 保存済みの冒険\n\n```prototype-scene\n'+JSON.stringify(d)+'\n```\n\n追記した説明\n';
+ const next=readScene(text);assert.equal(next.format,'dungeon-studio-scene');
+ const saved=replaceSceneBlock(text,next);assert.ok(saved.includes('```dungeon-scene'));assert.ok(saved.endsWith('追記した説明\n'));assert.deepEqual(readScene(saved),next);
+});
