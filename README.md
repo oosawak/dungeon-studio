@@ -76,6 +76,12 @@ World Studio の初期サンプルは「ワールド → 町 → 家・店」と
 
 扉と鍵を考慮した完全な攻略可能性の判定はまだありません。試遊前には、落とし穴を避けた同じ階の出口への地形上の接続を確認します。
 
+## シードとランダム生成
+
+左側の「マップを生成」を開き、「ランダムに生成」を押すと新しいシードで生成します。シード欄に数値を入力して「選択中のマップを生成」を押せば同じ町を再現できます。Townでは川・道路・建物の位置、大きさ、屋根と高さがシードで変わります。「元に戻す」で生成前へ戻せます。スマホでも生成設定を開けます。
+
+保存済みのMarkdownはそのまま読み込めます。新しい町の生成方法は、生成ボタンを押したときに使われます。
+
 ## ローカル実行
 
 Node.js 22 以降と Python 3 を用意し、次を実行します。npm の依存インストールは不要です。
@@ -98,6 +104,7 @@ node scripts/playtest.mjs
 node scripts/playtest-campaign.mjs
 node scripts/playtest-atlas.mjs
 node scripts/playtest-fps-travel.mjs
+node scripts/playtest-generation.mjs
 ```
 
 インストール済みGoogle Chromeで実行する場合は、各コマンドに `PLAYWRIGHT_CHANNEL=chrome` を付けます。建物ボタンは強制クリックを使わず、4種類の画面サイズで検証します。

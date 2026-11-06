@@ -1,5 +1,5 @@
 import {FORMAT,generateScene,validateScene} from './scene-format.js?v=atlas3';
-import {townBuildings,entranceForBuilding} from './settlements.js';
+import {townPlan,entranceForBuilding} from './settlements.js?v=townseed1';
 const occupied=(f,x,y)=>f.entities.some(e=>e.x===x&&e.y===y);
 export function placeEntrance(scene,target,label,style='gate'){
  const spawn=scene.entities.find(e=>e.kind==='spawn');
@@ -22,16 +22,20 @@ export function createPlace(kind='town',seed=42){
    const ridge=Math.abs(x-cx-Math.sin(y*.22+seed*.03)*7);
    grid[y][x]=r>edge&&!islet?'~':ridge<1.7&&y>9&&y<h-12?'^':smoothNoise(x/7,y/5,seed)>.55?'f':'g';
   }
-  for(let y=cy-2;y<=cy+2;y++)for(let x=cx-2;x<=cx+2;x++)grid[y][x]='g';
+  for(let y=cy-2;y<=cy+2;y++)for(let x=cx-2;x<=cx+3;x++)grid[y][x]='g';
   labels=[{id:'sea',x:15,y:9,text:'蒼白の海',size:25,color:'#edf0d5',rotation:-8},{id:'range',x:42,y:17,text:'灰冠山脈',size:19,rotation:73},{id:'forest',x:21,y:33,text:'緑陰の森',size:24,rotation:-5},{id:'isles',x:66,y:46,text:'灯守りの島々',size:20,color:'#f3ecd1'}];
  }else if(kind==='town'){
-  buildings=townBuildings(seed);
+  const plan=townPlan(seed);buildings=plan.buildings;
   for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
-   const river=7+Math.sin(y*.17)*1.2;
-   grid[y][x]=Math.abs(x-river)<1.4?'~':Math.abs(x-cx)<1.5||Math.abs(y-cy)<1.5?'=':x<10&&noise(x,y,seed)>.58?'f':'g';
+   const river=plan.riverAt(y),woodland=plan.mirrored?x>45:x<10;
+   grid[y][x]=Math.abs(x-plan.avenue)<1.5||Math.abs(y-plan.crossroad)<1.5?'=':
+    Math.abs(x-river)<1.25?'~':woodland&&noise(x,y,seed)>.58?'f':'g';
   }
-  for(const b of buildings){const door=entranceForBuilding(b);for(let x=Math.min(door.x,cx);x<=Math.max(door.x,cx);x++)grid[door.y][x]='=';}
-  labels=[{id:'market',x:40,y:21,text:'市の広場',size:21},{id:'river',x:6,y:26,text:'ルネ川',size:18,color:'#416c7a',rotation:-88},{id:'quarter',x:20,y:3,text:'職人街',size:20},{id:'garden',x:42,y:31,text:'南の住宅区',size:20}];
+  for(const b of buildings){const door=entranceForBuilding(b);for(let x=Math.min(door.x,plan.avenue);x<=Math.max(door.x,plan.avenue);x++)grid[door.y][x]='=';}
+  labels=[{id:'market',x:plan.avenue+3,y:plan.crossroad+1,text:'市の広場',size:21},
+   {id:'river',x:plan.riverAt(26),y:26,text:'ルネ川',size:18,color:'#416c7a',rotation:-88},
+   {id:'quarter',x:plan.mirrored?35:20,y:2,text:'職人街',size:20},
+   {id:'garden',x:plan.mirrored?14:42,y:30,text:'南の住宅区',size:20}];
  }else{
   for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++)grid[y][x]=(x<5||y<4||x>w-6||y>h-5)?'#':'.';
   for(let y=5;y<12;y++)grid[y][cx]='#';grid[9][cx]='+';

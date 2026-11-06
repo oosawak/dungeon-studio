@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import {createCampaign} from '../web/campaign.js';
 const base=(process.env.DUNGEON_STUDIO_URL||'http://127.0.0.1:8769/').replace(/\/$/,'');
 const output=fs.mkdtempSync(path.join(os.tmpdir(),'dungeon-studio-fps-travel-'));console.log('QA artifacts:',output);
 const makeMap=(kind,title)=>({format:'dungeon-studio-scene',version:1,mapKind:kind,title,width:16,height:16,cells:Array.from({length:16},(_,y)=>Array.from({length:16},(_,x)=>!x||!y||x===15||y===15?'#':kind==='town'?'g':'.').join('')),entities:[{kind:'spawn',x:8,y:10}],buildings:[],labels:[],lowerFloors:[],linkedMaps:[],initialKeys:3});
@@ -57,8 +58,15 @@ try{
  await page.goto(base+'/fps.html');await page.waitForFunction(()=>window.fpsStudio);
  await page.locator('#play').click();await page.waitForFunction(()=>fpsStudio.getState().locked);
  assert.equal((await state()).locationId,'town');assert.equal((await state()).buildings,16);
- await page.keyboard.down('w');await page.waitForFunction(()=>fpsStudio.getState().position[2]<=-34.5);await page.keyboard.up('w');await page.waitForTimeout(400);
- await page.keyboard.down('a');await page.waitForFunction(()=>fpsStudio.getState().nearby?.target==='house');await page.keyboard.up('a');await page.waitForTimeout(400);
+ const sampleTown=createCampaign(42).linkedMaps.find(e=>e.id==='town').scene,home=sampleTown.entities.find(e=>e.target==='house');
+ // Cross below every building in the first row, then approach this entrance.
+ const streetY=Math.max(...sampleTown.buildings.slice(0,4).map(b=>b.y+b.h))+1;
+ const approachZ=(streetY+.5-sampleTown.height/2)*3;
+ await page.keyboard.down('w');await page.waitForFunction(z=>fpsStudio.getState().position[2]<=z,approachZ);await page.keyboard.up('w');await page.waitForTimeout(400);
+ const sideways=home.x>sampleTown.width/2?'d':'a';
+ const targetX=(home.x+.5-sampleTown.width/2)*3;
+ await page.keyboard.down(sideways);await page.waitForFunction(({targetX,right})=>right?fpsStudio.getState().position[0]>=targetX:fpsStudio.getState().position[0]<=targetX,{targetX,right:sideways==='d'});await page.keyboard.up(sideways);await page.waitForTimeout(400);
+ await page.keyboard.down('w');await page.waitForFunction(()=>fpsStudio.getState().nearby?.target==='house');await page.keyboard.up('w');await page.waitForTimeout(400);
  await shot('sample-house-entrance');
  const sampleOutside=await state();await page.keyboard.press('f');await page.waitForFunction(()=>fpsStudio.getState().locationId==='house');
  await shot('sample-house-interior');assert.equal((await state()).kind,'interior');

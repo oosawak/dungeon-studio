@@ -9,7 +9,7 @@
 <script src="./vendor/three-160.min.js" onerror="document.getElementById('message').textContent='描画ライブラリを読み込めませんでした。' "></script>
 <script type="module">
 import {readScene,locationScene} from './scene-format.js?v=atlas3';
-import {createCampaign} from './campaign.js?v=atlas3';
+import {createCampaign} from './campaign.js?v=townseed1';
 import {createFpsJourney} from './fps-journey.js?v=portals1';
 let project=createCampaign(42);
 try{if(location.hash.startsWith('#scene='))project=readScene(decodeURIComponent(location.hash.slice(7)));}catch(error){document.getElementById('message').textContent=error.message;throw error;}
