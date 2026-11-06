@@ -1,5 +1,7 @@
 # Dungeon Studio
 
+**Markdown CMS × RUSTGAMES**
+
 表示フォントには [でんきチップ（DenkiChip）](https://github.com/hicchicc/x8y12pxDenkiChip) を使用しています。
 
 マップを描き、Markdown に保存し、そのまま2D／3Dのダンジョンで遊ぶブラウザーアプリです。
