@@ -1,0 +1,200 @@
+/* tslint:disable */
+/* eslint-disable */
+
+export function accessory_inventory_roguelike(): Int32Array;
+
+export function armor_inventory_roguelike(): Int32Array;
+
+export function attack_effect_data_roguelike(): Int32Array;
+
+export function clear_messages_roguelike(): void;
+
+export function damage_number_data_roguelike(): Int32Array;
+
+export function depth_roguelike(): number;
+
+export function enemy_attack_interval_scale_roguelike(): number;
+
+export function enemy_count_roguelike(): number;
+
+export function enemy_data_roguelike(index: number): Int32Array;
+
+export function enemy_name_roguelike(index: number): string;
+
+export function equip_accessory_roguelike(index: number): boolean;
+
+export function equip_armor_roguelike(index: number): boolean;
+
+export function equip_weapon_roguelike(index: number): boolean;
+
+export function game_palette_roguelike(): number;
+
+export function hp_roguelike(): number;
+
+export function init_roguelike(): void;
+
+export function inventory_roguelike(): Uint32Array;
+
+export function jump_to_floor_roguelike(depth: number): void;
+
+export function keys_mindzj(): number;
+
+export function level_roguelike(): number;
+
+export function load_mindzj_scene(json: string): void;
+
+export function map_data_roguelike(): Uint8Array;
+
+export function map_height_roguelike(): number;
+
+export function map_width_roguelike(): number;
+
+export function max_hp_roguelike(): number;
+
+export function max_mp_roguelike(): number;
+
+export function messages_roguelike(): string[];
+
+export function move_roguelike(action: number): void;
+
+export function mp_roguelike(): number;
+
+export function no_damage_mode_roguelike(): boolean;
+
+export function pit_fall_event_roguelike(): number;
+
+export function player_atk_roguelike(): number;
+
+export function player_def_roguelike(): number;
+
+export function player_direction_roguelike(): number;
+
+export function player_equipped_accessory_roguelike(): number;
+
+export function player_equipped_armor_roguelike(): number;
+
+export function player_equipped_weapon_roguelike(): number;
+
+export function player_x_roguelike(): number;
+
+export function player_y_roguelike(): number;
+
+export function projectile_data_roguelike(): Int32Array;
+
+export function render_roguelike(canvas_id: string, width: number, height: number): void;
+
+export function scene_roguelike(): number;
+
+export function set_enemy_attack_interval_scale_roguelike(value: number): void;
+
+export function set_game_palette_roguelike(value: number): void;
+
+export function set_no_damage_mode_roguelike(enabled: boolean): void;
+
+export function set_run_seed_roguelike(seed: number): void;
+
+export function set_start_depth_roguelike(depth: number): void;
+
+export function start_game_roguelike(): void;
+
+export function tick_roguelike(ts: number): void;
+
+export function unequip_accessory_roguelike(): void;
+
+export function unequip_armor_roguelike(): void;
+
+export function unequip_weapon_roguelike(): void;
+
+export function use_item_roguelike(item_index: number): boolean;
+
+export function visited_data_roguelike(): Uint8Array;
+
+export function weapon_inventory_roguelike(): Int32Array;
+
+export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
+
+export interface InitOutput {
+    readonly memory: WebAssembly.Memory;
+    readonly accessory_inventory_roguelike: (a: number) => void;
+    readonly armor_inventory_roguelike: (a: number) => void;
+    readonly attack_effect_data_roguelike: (a: number) => void;
+    readonly clear_messages_roguelike: () => void;
+    readonly damage_number_data_roguelike: (a: number) => void;
+    readonly depth_roguelike: () => number;
+    readonly enemy_attack_interval_scale_roguelike: () => number;
+    readonly enemy_count_roguelike: () => number;
+    readonly enemy_data_roguelike: (a: number, b: number) => void;
+    readonly enemy_name_roguelike: (a: number, b: number) => void;
+    readonly equip_accessory_roguelike: (a: number) => number;
+    readonly equip_armor_roguelike: (a: number) => number;
+    readonly equip_weapon_roguelike: (a: number) => number;
+    readonly game_palette_roguelike: () => number;
+    readonly hp_roguelike: () => number;
+    readonly init_roguelike: () => void;
+    readonly inventory_roguelike: (a: number) => void;
+    readonly jump_to_floor_roguelike: (a: number) => void;
+    readonly keys_mindzj: () => number;
+    readonly level_roguelike: () => number;
+    readonly load_mindzj_scene: (a: number, b: number, c: number) => void;
+    readonly map_data_roguelike: (a: number) => void;
+    readonly map_height_roguelike: () => number;
+    readonly map_width_roguelike: () => number;
+    readonly max_hp_roguelike: () => number;
+    readonly max_mp_roguelike: () => number;
+    readonly messages_roguelike: (a: number) => void;
+    readonly move_roguelike: (a: number) => void;
+    readonly mp_roguelike: () => number;
+    readonly no_damage_mode_roguelike: () => number;
+    readonly pit_fall_event_roguelike: () => number;
+    readonly player_atk_roguelike: () => number;
+    readonly player_def_roguelike: () => number;
+    readonly player_direction_roguelike: () => number;
+    readonly player_equipped_accessory_roguelike: () => number;
+    readonly player_equipped_armor_roguelike: () => number;
+    readonly player_equipped_weapon_roguelike: () => number;
+    readonly player_x_roguelike: () => number;
+    readonly player_y_roguelike: () => number;
+    readonly projectile_data_roguelike: (a: number) => void;
+    readonly render_roguelike: (a: number, b: number, c: number, d: number) => void;
+    readonly scene_roguelike: () => number;
+    readonly set_enemy_attack_interval_scale_roguelike: (a: number) => void;
+    readonly set_game_palette_roguelike: (a: number) => void;
+    readonly set_no_damage_mode_roguelike: (a: number) => void;
+    readonly set_run_seed_roguelike: (a: number) => void;
+    readonly set_start_depth_roguelike: (a: number) => void;
+    readonly start_game_roguelike: () => void;
+    readonly tick_roguelike: (a: number) => void;
+    readonly unequip_accessory_roguelike: () => void;
+    readonly unequip_armor_roguelike: () => void;
+    readonly unequip_weapon_roguelike: () => void;
+    readonly use_item_roguelike: (a: number) => number;
+    readonly visited_data_roguelike: (a: number) => void;
+    readonly weapon_inventory_roguelike: (a: number) => void;
+    readonly __wbindgen_export: (a: number, b: number) => number;
+    readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
+    readonly __wbindgen_export3: (a: number) => void;
+    readonly __wbindgen_export4: (a: number, b: number, c: number) => void;
+    readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
+}
+
+export type SyncInitInput = BufferSource | WebAssembly.Module;
+
+/**
+ * Instantiates the given `module`, which can either be bytes or
+ * a precompiled `WebAssembly.Module`.
+ *
+ * @param {{ module: SyncInitInput }} module - Passing `SyncInitInput` directly is deprecated.
+ *
+ * @returns {InitOutput}
+ */
+export function initSync(module: { module: SyncInitInput } | SyncInitInput): InitOutput;
+
+/**
+ * If `module_or_path` is {RequestInfo} or {URL}, makes a request and
+ * for everything else, calls `WebAssembly.instantiate` directly.
+ *
+ * @param {{ module_or_path: InitInput | Promise<InitInput> }} module_or_path - Passing `InitInput` directly is deprecated.
+ *
+ * @returns {Promise<InitOutput>}
+ */
+export default function __wbg_init (module_or_path?: { module_or_path: InitInput | Promise<InitInput> } | InitInput | Promise<InitInput>): Promise<InitOutput>;

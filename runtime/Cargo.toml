@@ -1,0 +1,27 @@
+[package]
+name = "wasm_dungeonload"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Dungeon Studio runtime derived from oosawak/rustgames DUNGEON//LOAD"
+
+[workspace]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "=0.2.120"
+wasm-bindgen-futures = "=0.4.70"
+js-sys = "=0.3.97"
+console_error_panic_hook = "0.1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+web-sys = {version = "=0.3.97", features = ["Window", "Document", "Element", "HtmlCanvasElement", "HtmlImageElement", "CanvasRenderingContext2d", "Storage", "console"]}
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

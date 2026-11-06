@@ -1,0 +1,2746 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"><link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>MindZJ × DUNGEON//LOAD</title>
+<link rel="stylesheet" href="./engine.css">
+<link rel="stylesheet" href="./rpg-awesome/css/rpg-awesome.min.css">
+<style>
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  font-family: 'GenInterfaceJP', monospace;
+  overflow: hidden;
+}
+#container {
+  display: flex;
+  width: 100%;
+  height: 40vh;
+}
+#ui-upper {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  overflow-y: auto;
+  position: relative;
+  transition: flex 0.3s ease;
+}
+#ui-upper.hidden {
+  flex: 0 0 0;
+  overflow: hidden;
+  display: none;
+}
+#canvas-wrap {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  background: #000;
+  transition: flex 0.3s ease;
+}
+#canvas-wrap.expanded { flex: 1; }
+#ui-toggle-btn {
+  position: absolute;
+  top: 50px;
+  right: 10px;
+  z-index: 40;
+  padding: 6px 12px;
+  background: rgba(0,200,255,0.2);
+  border: 1px solid #0ff;
+  color: #0ff;
+  cursor: pointer;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.75em;
+  display: none;
+  transition: top 0.3s ease;
+}
+#ui-toggle-btn.show { display: block; }
+.mobile-weapon-slots {
+  position: absolute;
+  left: 0;
+  bottom: 130px;
+  display: flex;
+  gap: 4px;
+  width: calc(100vw - 20px);
+  justify-content: flex-start;
+}
+.mobile-weapon-slot {
+  width: 40px;
+  height: 40px;
+  padding: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  background: rgba(0, 25, 40, 0.9);
+  border: 1px solid rgba(0, 200, 255, 0.65);
+  border-radius: 7px;
+  color: #0ff;
+  font-family: monospace;
+  cursor: pointer;
+  touch-action: none;
+}
+.mobile-weapon-slot .slot-number {
+  font-size: 9px;
+  line-height: 1;
+  opacity: 0.7;
+}
+.mobile-weapon-slot .slot-icon {
+  font-size: 17px;
+  line-height: 1;
+}
+.mobile-weapon-slot.active {
+  border-color: #fff;
+  background: rgba(0, 220, 255, 0.35);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.8);
+  color: #fff;
+}
+.mobile-weapon-slot.empty {
+  opacity: 0.3;
+  cursor: default;
+}
+.mobile-cycle-button {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: rgba(0, 200, 255, 0.18);
+  border: 2px solid rgba(0, 200, 255, 0.7);
+  border-radius: 7px;
+  color: #0ff;
+  font-family: monospace;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  touch-action: none;
+}
+.mobile-weapon-slots > .mobile-cycle-button:last-child {
+  margin-left: auto;
+}
+#status-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  font-size: 0.9em;
+}
+.stat-item { display: flex; flex-direction: column; gap: 4px; }
+.stat-label {
+  color: #0ff;
+  font-size: 0.75em;
+  text-shadow: 0 0 6px #0ff;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.stat-label .ra {
+  font-size: 1.2em;
+  color: #0ff;
+  text-shadow: 0 0 4px #0ff;
+}
+.stat-value {
+  color: #0ff;
+  font-size: 1.2em;
+  font-weight: bold;
+  text-shadow: 0 0 8px #0ff;
+}
+.stat-bar {
+  width: 100%;
+  height: 12px;
+  background: rgba(0, 40, 60, 0.8);
+  border: 1px solid rgba(0, 200, 255, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.stat-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00aaff, #00ffff);
+  transition: width 0.3s;
+  width: 100%;
+}
+#hp-bar { --hp: 100; }
+#mp-bar { --mp: 100; }
+#message-log {
+  border-top: 1px solid rgba(0, 200, 255, 0.2);
+  margin-top: 8px;
+  padding-top: 8px;
+  font-size: 0.8em;
+  color: #aaa;
+  max-height: 50px;
+  overflow-y: auto;
+  line-height: 1.4;
+}
+.msg-text {
+  color: #aaf;
+  text-shadow: 0 0 4px #0ff;
+  margin: 2px 0;
+}
+#canvas-wrap {
+  flex: 0 0 50%;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000;
+}
+#game-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+#game-canvas-tiny {
+  width: 100%;
+  height: 100%;
+  display: none;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background: #1b1d2b;
+}
+#swipe-hint { display: none; }
+#swipe-hint .sh-arrow {
+  position: absolute;
+  font-size: 2em;
+  color: rgba(0, 255, 255, 0.2);
+  text-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
+  font-weight: bold;
+}
+#swipe-hint .sh-up    { top: 0; left: 50%; transform: translateX(-50%); }
+#swipe-hint .sh-down  { bottom: 0; left: 50%; transform: translateX(-50%); }
+#swipe-hint .sh-left  { left: 0; top: 50%; transform: translateY(-50%); }
+#swipe-hint .sh-right { right: 0; top: 50%; transform: translateY(-50%); }
+#swipe-hint .sh-arrow.flash {
+  color: rgba(0, 255, 255, 0.9);
+  text-shadow: 0 0 16px rgba(0, 255, 255, 0.8);
+  animation: flash 0.2s;
+}
+@keyframes flash {
+  0% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+#title-screen {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  color: #0ff;
+  text-shadow: 0 0 20px #0ff;
+}
+#title-screen h1 {
+  font-size: clamp(2em, 8vw, 3.5em);
+  margin: 0 0 16px;
+  animation: pulse 0.8s infinite alternate;
+}
+#title-screen p { margin: 8px 0; font-size: 1em; }
+#title-screen button {
+  margin-top: 24px;
+  padding: 12px 32px;
+  background: transparent;
+  border: 2px solid #0ff;
+  color: #0ff;
+  font-family: 'GenInterfaceJP', monospace;
+  font-size: 1.1em;
+  cursor: pointer;
+  text-shadow: 0 0 8px #0ff;
+  box-shadow: 0 0 16px #0ff;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+#title-screen button:active { background: rgba(0, 255, 255, 0.2); }
+#town-screen {
+  position: fixed;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 95;
+  padding: 24px 16px;
+  color: #ffe6ad;
+  background:
+    linear-gradient(rgba(8, 12, 28, 0.3), rgba(8, 6, 18, 0.82)),
+    radial-gradient(circle at 50% 24%, rgba(255, 180, 90, 0.28), transparent 25%),
+    linear-gradient(180deg, #253c66 0%, #121a36 46%, #090713 100%);
+  overflow-y: auto;
+}
+#town-screen.active { display: flex; }
+#town-screen h2 {
+  margin: 0;
+  color: #ffd47a;
+  font-size: clamp(1.5em, 5vw, 2.4em);
+  text-shadow: 0 0 14px rgba(255, 170, 70, 0.75);
+}
+#town-screen > p { margin: 6px 0 18px; color: #d5c8ad; font-size: 0.85em; }
+#town-square {
+  width: min(620px, 94vw);
+  min-height: 260px;
+  padding: 26px 16px 18px;
+  border: 1px solid rgba(255, 190, 100, 0.5);
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgba(255, 205, 120, 0.08), transparent 35%),
+    rgba(8, 8, 20, 0.54);
+  box-shadow: inset 0 0 28px rgba(255, 170, 80, 0.08), 0 12px 40px rgba(0,0,0,0.45);
+}
+#town-locations {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.town-location {
+  min-height: 104px;
+  padding: 10px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #ffe9b7;
+  background: rgba(18, 20, 42, 0.8);
+  border: 1px solid rgba(255, 190, 100, 0.42);
+  border-radius: 8px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+.town-location:hover, .town-location:focus-visible {
+  transform: translateY(-4px);
+  background: rgba(100, 65, 45, 0.65);
+  border-color: #ffd47a;
+  outline: none;
+}
+.town-location.selected { animation: town-location-select 0.36s ease; }
+.town-location img { width: 48px; height: 48px; object-fit: contain; filter: sepia(0.25) saturate(1.4) drop-shadow(0 0 5px rgba(255,190,100,0.55)); }
+.town-location span { font-size: 0.72em; letter-spacing: 0.04em; }
+@keyframes town-location-select {
+  50% { transform: translateY(-8px) scale(1.08); filter: brightness(1.35); }
+}
+#town-panel {
+  width: min(620px, 94vw);
+  margin-top: 14px;
+  padding: 14px 16px;
+  display: none;
+  border: 1px solid rgba(255, 190, 100, 0.62);
+  border-radius: 8px;
+  background: rgba(8, 8, 20, 0.9);
+  color: #e8dcc6;
+}
+#town-panel.active { display: block; animation: town-panel-in 0.22s ease-out; }
+@keyframes town-panel-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+#town-panel.launching {
+  border-color: #ffe08a;
+  box-shadow: 0 0 22px rgba(255, 190, 100, 0.55);
+  animation: town-cartridge-load 0.68s ease-in-out;
+}
+@keyframes town-cartridge-load {
+  0%, 100% { transform: scale(1); }
+  45% { transform: scale(1.035); background: rgba(92, 62, 42, 0.95); }
+}
+.town-panel-title { color: #ffd47a; font-size: 1.1em; margin-bottom: 8px; }
+.town-panel-copy { color: #bdb4a5; font-size: 0.78em; line-height: 1.5; }
+.town-coming-soon {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 4px 8px;
+  color: #ffc96b;
+  border: 1px solid rgba(255, 190, 100, 0.6);
+  border-radius: 3px;
+  font-size: 0.72em;
+  letter-spacing: 0.08em;
+  animation: town-coming-pulse 1.2s ease-in-out infinite alternate;
+}
+@keyframes town-coming-pulse { from { opacity: 0.55; } to { opacity: 1; } }
+.town-loading {
+  color: #fff0b0;
+  text-align: center;
+  letter-spacing: 0.1em;
+  animation: town-loading-pulse 0.35s ease-in-out infinite alternate;
+}
+@keyframes town-loading-pulse { from { text-shadow: 0 0 4px #ffc04d; } to { text-shadow: 0 0 18px #fff0a0; } }
+.dungeon-options { display: grid; gap: 8px; margin-top: 12px; }
+.dungeon-option {
+  width: 100%;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #ffe9b7;
+  text-align: left;
+  background: rgba(35, 36, 66, 0.86);
+  border: 1px solid rgba(255, 190, 100, 0.4);
+  border-radius: 5px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.dungeon-option:hover { border-color: #ffd47a; background: rgba(88, 64, 54, 0.78); }
+.dungeon-option small { color: #c1b49f; font-size: 0.72em; }
+.dungeon-seed-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+.dungeon-seed-controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #c1b49f;
+  font-size: 0.72em;
+}
+.dungeon-seed-controls input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 8px;
+  color: #ffe9b7;
+  background: rgba(12, 14, 30, 0.9);
+  border: 1px solid rgba(255, 190, 100, 0.45);
+  border-radius: 4px;
+  font: inherit;
+}
+.dungeon-seed-controls input:focus { outline: 1px solid #ffd47a; border-color: #ffd47a; }
+.town-close { margin-top: 12px; padding: 7px 18px; color: #ffd47a; background: transparent; border: 1px solid rgba(255,190,100,0.55); border-radius: 4px; font-family: inherit; cursor: pointer; }
+.party-battle-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  color: #eee;
+  background: radial-gradient(circle at 50% 42%, #3b3545 0%, #171522 58%, #07070d 100%);
+}
+.party-battle-screen.active { display: flex; }
+.party-battle-title { color: #ffd47a; font-size: 1.2em; letter-spacing: 0.12em; }
+.party-battlefield { display: grid; grid-template-columns: minmax(210px, 1fr) 70px minmax(210px, 1fr); gap: 12px; align-items: center; width: min(720px, 96vw); }
+.party-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 7px; border: 1px solid rgba(255,255,255,0.35); background: rgba(0,0,0,0.32); }
+.party-grid-label { grid-column: 1 / -1; text-align: center; color: #c8d5e8; font-size: 0.7em; letter-spacing: 0.1em; }
+.party-cell { position: relative; min-height: 58px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,0.18); background: rgba(35,45,62,0.45); }
+.party-cell.empty { background: rgba(10,14,24,0.28); border-color: rgba(255,255,255,0.1); cursor: pointer; }
+.party-cell.empty:hover { background: rgba(80,70,55,0.45); border-color: rgba(255,212,122,0.7); }
+.party-cell.defeated { opacity: 0.28; filter: grayscale(1); }
+.party-cell img { width: 44px; height: 44px; object-fit: contain; filter: drop-shadow(0 0 4px rgba(255,255,255,0.55)); }
+.party-cell.selected { border-color: #ffd47a; box-shadow: 0 0 12px rgba(255,212,122,0.8); }
+.party-cell.enemy { border-color: rgba(255,95,95,0.35); }
+.party-cell.enemy img { filter: sepia(0.6) saturate(2.2) hue-rotate(300deg) drop-shadow(0 0 4px #f55); }
+.party-cell .party-hp { position: absolute; right: 2px; bottom: 1px; color: #9fefad; font: 9px monospace; }
+.party-divider { color: #ffd47a; text-align: center; font-size: 1.4em; }
+.party-command-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; width: min(720px, 96vw); }
+.party-command { min-width: 105px; padding: 9px 12px; color: #ffe9b7; background: rgba(30,33,54,0.9); border: 1px solid rgba(255,190,100,0.55); border-radius: 4px; font-family: inherit; cursor: pointer; }
+.party-command:hover { background: rgba(105,70,52,0.9); border-color: #ffd47a; }
+.party-battle-log { width: min(720px, 96vw); min-height: 34px; color: #bde5ff; font: 0.72em monospace; text-align: center; }
+@media (max-width: 460px) {
+  #town-locations { gap: 7px; }
+  .town-location { min-height: 88px; }
+  .town-location img { width: 38px; height: 38px; }
+  .town-location span { font-size: 0.62em; }
+}
+#title-monster-stream {
+  width: min(520px, 88vw);
+  height: 76px;
+  margin-top: 24px;
+  overflow: hidden;
+  border-top: 1px solid rgba(0,255,255,0.55);
+  border-bottom: 1px solid rgba(0,130,255,0.7);
+  background: rgba(0, 20, 55, 0.55);
+}
+#title-monster-track {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  width: max-content;
+  height: 100%;
+  animation: clear-monsters-slide 22s linear infinite;
+}
+#title-monster-track img {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  filter: sepia(1) saturate(5) hue-rotate(165deg) drop-shadow(0 0 8px #08f);
+  transform: rotateY(180deg);
+}
+#title-monster-track .icon-card,
+#clear-monster-track .icon-card {
+  flex: 0 0 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+#title-monster-track .icon-label,
+#clear-monster-track .icon-label {
+  max-width: 70px;
+  overflow: hidden;
+  color: #66ccff;
+  font: 9px monospace;
+  line-height: 1;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@keyframes pulse {
+  from { opacity: 0.8; }
+  to { opacity: 1; text-shadow: 0 0 30px #0ff, 0 0 60px #0ff; }
+}
+#game-over {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+#game-over h2 {
+  color: #f44;
+  font-size: 2.5em;
+  text-shadow: 0 0 20px #f44;
+  margin: 0 0 12px;
+  animation: pulse 0.5s infinite alternate;
+}
+#game-over p {
+  color: #f88;
+  font-size: 1.2em;
+  margin-bottom: 24px;
+}
+#game-over button {
+  padding: 12px 32px;
+  background: transparent;
+  border: 2px solid #f44;
+  color: #f44;
+  font-family: 'GenInterfaceJP', monospace;
+  font-size: 1.1em;
+  cursor: pointer;
+  text-shadow: 0 0 8px #f44;
+  box-shadow: 0 0 16px #f44;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+#game-over button:active { background: rgba(244, 68, 68, 0.2); }
+#game-over.victory {
+  background: radial-gradient(circle at center, rgba(100, 15, 25, 0.5), rgba(8, 0, 4, 0.97) 68%);
+}
+#game-over.victory h2 {
+  color: #f44;
+  text-shadow: 0 0 14px #f44, 0 0 36px #900;
+}
+#game-over.victory p { color: #f88; text-shadow: 0 0 8px #f44; }
+#game-over.victory button {
+  border-color: #f44;
+  color: #f44;
+  text-shadow: 0 0 8px #f44;
+  box-shadow: 0 0 16px #f44;
+}
+#clear-monster-stream {
+  width: min(520px, 88vw);
+  height: 76px;
+  margin-top: 24px;
+  overflow: hidden;
+  border-top: 1px solid rgba(0,255,255,0.55);
+  border-bottom: 1px solid rgba(255,50,80,0.55);
+  background: rgba(0, 20, 35, 0.55);
+}
+#clear-monster-track {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  width: max-content;
+  height: 100%;
+  animation: clear-monsters-slide 22s linear infinite;
+}
+#clear-monster-track img {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  filter: sepia(1) saturate(5) hue-rotate(310deg) drop-shadow(0 0 8px #f33);
+  transform: rotateY(180deg);
+}
+#clear-monster-track .icon-label { color: #ff7777; }
+#clear-monster-track img.clear-hero {
+  filter: sepia(1) saturate(5) hue-rotate(310deg) drop-shadow(0 0 8px #f33);
+}
+@keyframes clear-monsters-slide {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+#loading {
+  position: fixed;
+  inset: 0;
+  background: #000008;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  color: #0ff;
+  font-size: 1.2em;
+  text-shadow: 0 0 8px #0ff;
+}
+#pit-fall-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  background: #000;
+  z-index: 90;
+  pointer-events: none;
+}
+#pit-fall-player {
+  position: absolute;
+  top: 32%;
+  left: 50%;
+  width: 64px;
+  height: 64px;
+  opacity: 0;
+  transform: translateX(-50%);
+}
+#pit-fall-overlay.active {
+  display: block;
+  animation: pit-fall-blackout 0.6s ease-in-out;
+}
+#pit-fall-overlay.active #pit-fall-player {
+  animation: pit-fall-player-drop 0.6s ease-in-out;
+}
+@keyframes pit-fall-blackout {
+  0% { opacity: 0; }
+  18%, 82% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes pit-fall-player-drop {
+  0% { opacity: 0; transform: translate(-50%, -12px) rotate(0deg); }
+  18% { opacity: 1; transform: translate(-50%, 0) rotate(-12deg); }
+  42% { transform: translate(calc(-50% - 12px), 35px) rotate(16deg); }
+  68% { transform: translate(calc(-50% + 10px), 82px) rotate(170deg); }
+  100% { opacity: 0; transform: translate(-50%, 150px) rotate(360deg); }
+}
+.spin {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(0, 200, 255, 0.2);
+  border-top-color: #0ff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#nav-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background: rgba(0, 20, 40, 0.95);
+  border-top: 2px solid rgba(0, 200, 255, 0.4);
+  display: none;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 120;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+.nav-btn {
+  flex: 1;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: rgba(0, 200, 255, 0.6);
+  font-family: 'GenInterfaceJP', monospace;
+  font-size: 0.7em;
+  cursor: pointer;
+  text-shadow: 0 0 4px rgba(0, 200, 255, 0.3);
+  transition: all 0.2s;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+  display: flex;
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(0, 255, 255, 0.2);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.nav-btn .nav-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  vertical-align: -3px;
+  filter: invert(74%) sepia(96%) saturate(1450%) hue-rotate(135deg) brightness(102%) contrast(104%);
+}
+.nav-btn .ra {
+  font-size: 1.3em;
+  color: rgba(0, 200, 255, 0.6);
+  transition: color 0.2s;
+}
+.nav-btn:hover, .nav-btn.active {
+  color: #0ff;
+  text-shadow: 0 0 8px #0ff;
+}
+.nav-btn:hover .ra, .nav-btn.active .ra { color: #0ff; }
+.nav-btn.active { border-bottom-color: #0ff; }
+#tab-content {
+  background: rgba(0, 0, 20, 0.8);
+  border-bottom: 2px solid rgba(0, 200, 255, 0.3);
+  overflow-y: auto;
+  padding: 12px;
+  display: none;
+}
+.tab-panel {
+  display: none;
+  padding: 16px;
+  color: #aaf;
+  font-size: 0.9em;
+  line-height: 1.6;
+  width: 100%;
+}
+.tab-panel.active { display: block; }
+@media (orientation: portrait) {
+  #container { flex-direction: column; }
+  #tab-content {
+    order: -1;
+    flex: 0 0 40%;
+    display: flex;
+    position: static;
+  }
+  #canvas-wrap {
+    flex: 1;
+    order: 0;
+    min-height: 0;
+    height: calc(60vh - 50px);
+  }
+  #nav-bar { order: 1; height: 50px; }
+}
+@media (max-width: 768px) {
+  #ui-upper { flex: 0 0 45%; }
+  #canvas-wrap { flex: 0 0 55%; }
+  #status-panel { grid-template-columns: 1fr; gap: 8px; }
+  #nav-bar { height: 45px; }
+}
+@media (orientation: landscape) {
+  #container { flex-direction: row; }
+  #ui-upper { display: none; }
+  #status-panel { grid-template-columns: 1fr; }
+  #tab-content {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    border-right: 2px solid rgba(0, 200, 255, 0.3);
+    display: flex;
+    flex-direction: column;
+    padding-top: 0;
+    order: auto;
+    z-index: 0;
+  }
+  #canvas-wrap {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 50% !important;
+    height: calc(100% - 50px) !important;
+    order: auto;
+    z-index: 1;
+  }
+  #nav-bar {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 50%;
+    height: 50px;
+    border-top: 2px solid rgba(0, 200, 255, 0.4);
+    border-left: 2px solid rgba(0, 200, 255, 0.4);
+    flex-direction: row;
+  }
+  .tab-panel { display: none; flex: 1; overflow-y: auto; padding: 16px; }
+  .tab-panel.active { display: block; }
+}
+/* The game remains the primary surface; tabs open as an overlay panel. */
+#container {
+  position: fixed;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  z-index: 80;
+  pointer-events: none;
+}
+#ui-upper {
+  position: fixed;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 80;
+}
+#tab-content {
+  position: absolute;
+  top: 0;
+  left: auto;
+  right: 0;
+  width: min(92vw, 440px);
+  height: calc(100% - 50px);
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  background: rgba(0, 0, 20, 0.96);
+  border-left: 2px solid rgba(0, 200, 255, 0.45);
+  border-bottom: 2px solid rgba(0, 200, 255, 0.3);
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+  pointer-events: none;
+}
+#ui-upper.panel-open #tab-content {
+  transform: translateX(0);
+  pointer-events: auto;
+}
+#tab-content > .tab-panel {
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
+  padding: 4px;
+}
+#canvas-wrap {
+  position: fixed;
+  top: 42px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100% !important;
+  height: calc(100% - 42px) !important;
+  z-index: 1;
+}
+body.mode-3d #canvas-wrap {
+  bottom: auto;
+  height: calc(50vh - 42px) !important;
+}
+#game-top-info {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 42px;
+  display: none;
+  align-items: center;
+  padding: 0 14px;
+  background: rgba(0, 10, 20, 0.9);
+  border-bottom: 1px solid rgba(0, 200, 255, 0.35);
+  color: rgba(190, 220, 240, 0.9);
+  font-size: 0.75em;
+  z-index: 35;
+  pointer-events: none;
+}
+#ui-toggle-btn { display: none !important; }
+body.controls-swapped #mobile-action-buttons {
+  left: auto !important;
+  right: 10px;
+}
+body.controls-swapped #movement-joystick {
+  right: auto !important;
+  left: 10px !important;
+}
+@media (min-width: 577px) {
+  #container,
+  #ui-upper,
+  #canvas-wrap,
+  #game-top-info,
+  #nav-bar {
+    width: 576px !important;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
+  #canvas-wrap {
+    max-width: 576px;
+  }
+  #game-info-panel {
+    left: calc(50% - 268px) !important;
+    right: calc(50% - 268px) !important;
+  }
+  #mobile-action-pad {
+    left: calc(50% - 278px) !important;
+    width: 556px !important;
+  }
+  .mobile-weapon-slots {
+    width: 556px;
+  }
+  #mobile-action-buttons {
+    left: calc(50% - 278px) !important;
+  }
+  #movement-joystick {
+    right: calc(50% - 278px) !important;
+  }
+  body.controls-swapped #mobile-action-buttons {
+    right: calc(50% - 278px) !important;
+  }
+  body.controls-swapped #movement-joystick {
+    left: calc(50% - 278px) !important;
+  }
+}
+#mobile-action-pad {
+  width: calc(100vw - 20px);
+  height: 40px;
+}
+#mobile-action-buttons {
+  position: fixed;
+  bottom: 70px;
+  left: 10px;
+  z-index: 50;
+  display: none;
+  align-items: flex-end;
+  gap: 8px;
+}
+#jump-button .ra {
+  font-size: 1.35em;
+  vertical-align: middle;
+}
+#panel-close {
+  align-self: flex-end;
+  flex: 0 0 auto;
+  margin: 0 0 8px;
+  padding: 5px 12px;
+  background: rgba(0, 200, 255, 0.12);
+  border: 1px solid rgba(0, 200, 255, 0.7);
+  border-radius: 4px;
+  color: #0ff;
+  font-family: monospace;
+  cursor: pointer;
+}
+#message-log { z-index: 40; }
+#game-info-panel {
+  position: fixed;
+  left: 120px;
+  right: 120px;
+  bottom: 210px;
+  z-index: 35;
+  display: none;
+  pointer-events: none;
+}
+#game-info-panel #message-log {
+  position: static;
+  display: block;
+  max-height: 112px;
+  margin: 0 0 6px;
+  pointer-events: auto;
+}
+#game-controls {
+  padding: 7px 10px;
+  border: 1px solid rgba(0, 200, 255, 0.45);
+  border-radius: 4px;
+  background: rgba(0, 20, 30, 0.86);
+  color: rgba(190, 220, 240, 0.9);
+  font-size: 0.72em;
+  line-height: 1.4;
+}
+#game-controls-title {
+  margin-bottom: 3px;
+  color: #0ff;
+  font-size: 11px;
+}
+#game-controls-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px 14px;
+}
+@media (max-width: 768px) {
+  #game-info-panel {
+    left: 10px;
+    right: 10px;
+    bottom: 250px;
+  }
+  #game-info-panel #message-log { max-height: 110px; }
+  #game-controls { font-size: 0.65em; padding: 5px 7px; }
+  #game-controls-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px 8px; }
+}
+#message-log {
+  position: fixed;
+  bottom: 60px;
+  left: 120px;
+  right: 120px;
+  z-index: 40;
+  max-height: 140px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.85);
+  border: 1px solid rgba(0, 200, 255, 0.6);
+  border-radius: 4px;
+  padding: 12px;
+  font-family: monospace;
+  font-size: 0.8em;
+  color: #0ff;
+  display: none;
+  text-shadow: 0 0 6px #0ff;
+  line-height: 1.4;
+  text-align: left;
+}
+@media (max-aspect-ratio: 1/1), (max-width: 768px) {
+  #message-log {
+    left: 140px;
+    right: 100px;
+    max-height: 120px;
+    font-size: 0.75em;
+    padding: 10px;
+  }
+}
+@media (max-width: 480px) {
+  #message-log {
+    left: 20px;
+    right: 20px;
+    max-height: 100px;
+    font-size: 0.7em;
+    padding: 8px;
+  }
+}
+@media (min-width: 577px) {
+  html {
+    background: #111;
+  }
+  body {
+    position: relative;
+    width: 576px;
+    height: min(100vh, 1080px);
+    margin: max(0px, calc((100vh - 1080px) / 2)) auto;
+    overflow: hidden;
+  }
+  #container,
+  #ui-upper,
+  #canvas-wrap,
+  #game-top-info,
+  #nav-bar,
+  #game-info-panel,
+  #mobile-action-pad,
+  #mobile-action-buttons,
+  #movement-joystick {
+    position: absolute !important;
+    transform: none !important;
+  }
+  #container,
+  #ui-upper {
+    inset: 0 auto auto 0;
+    width: 576px !important;
+    height: 100%;
+  }
+  #canvas-wrap {
+    top: 42px;
+    right: auto;
+    bottom: 0;
+    left: 0;
+    width: 576px !important;
+    height: calc(100% - 42px) !important;
+  }
+  #game-top-info {
+    top: 0;
+    right: auto;
+    bottom: auto;
+    left: 0;
+    width: 576px;
+  }
+  #nav-bar {
+    right: auto;
+    bottom: 0;
+    left: 0;
+    width: 576px !important;
+  }
+  #game-info-panel {
+    right: 10px !important;
+    bottom: 270px;
+    left: 10px !important;
+  }
+  #mobile-action-pad {
+    top: auto;
+    right: auto !important;
+    bottom: 70px;
+    left: 10px !important;
+    width: 556px !important;
+  }
+  .mobile-weapon-slots {
+    width: 556px;
+  }
+  #mobile-action-buttons {
+    right: auto !important;
+    bottom: 70px;
+    left: 10px !important;
+  }
+  #movement-joystick {
+    top: auto;
+    right: 10px !important;
+    bottom: 60px;
+    left: auto !important;
+  }
+  body.controls-swapped #mobile-action-buttons {
+    right: 10px !important;
+    left: auto !important;
+  }
+  body.controls-swapped #movement-joystick {
+    right: auto !important;
+    left: 10px !important;
+  }
+}
+</style>
+<script src="./vendor/three.min.js"></script>
+
+
+</head>
+<body>
+<div id="mindzj-import-bar"><a href="index.html" id="mindzj-edit">← マップ編集</a><a href="credits.html">Credits</a><button id="mindzj-load">Markdownを開く</button><button id="mindzj-retry">シーンを再開</button><span id="mindzj-status" role="status">シーン読込待ち</span><span id="mindzj-note" hidden></span><input id="mindzj-file" type="file" accept=".md,.markdown,.json" hidden></div>
+<style>#mindzj-import-bar{position:fixed;bottom:8px;left:8px;right:8px;z-index:2500;display:flex;gap:8px;align-items:center;padding:8px;background:#102430f2;border:1px solid #37616d;border-radius:8px;font:12px sans-serif}#mindzj-import-bar a{color:#b9e8df}#mindzj-import-bar button{font-family:GenInterfaceJP,sans-serif;cursor:pointer;padding:6px 10px;color:#e6f8ff;background:#264956;border:1px solid #59818a;border-radius:4px}#mindzj-import-bar{font-family:GenInterfaceJP,sans-serif;flex-wrap:wrap}#mindzj-note{flex-basis:100%;max-height:70px;overflow:auto;white-space:pre-wrap;color:#f2d9a7}#tiny-toggle{right:186px!important}#no-damage-quick-toggle{right:66px!important}#mindzj-status{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}</style>
+
+<div style="position: absolute; left: -9999px; font-family: RPGAwesome; font-size: 1px;">
+  <span class="ra ra-player"></span>
+  <span class="ra ra-dragon"></span>
+  <span class="ra ra-monster-skull"></span>
+  <span class="ra ra-skull"></span>
+</div>
+<div style="position: absolute; left: -9999px;">
+  <img crossorigin="anonymous" id="player-icon" src="./icons/cathelineau/swordman.png" width="64" height="64">
+  <img crossorigin="anonymous" id="stairs-icon" src="./icons/delapouite/3d-stairs.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-0" src="./icons/caro-asercion/goblin.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-1" src="./icons/delapouite/goblin-head.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-2" src="./icons/delapouite/orc-head.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-3" src="./icons/delapouite/bat.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-4" src="./icons/skoll/bat.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-5" src="./icons/lorc/harpy.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-6" src="./icons/lorc/skeleton-inside.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-7" src="./icons/skoll/skeleton.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-8" src="./icons/lorc/skull-mask.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-9" src="./icons/carl-olsen/spider-alt.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-10" src="./icons/carl-olsen/spider-face.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-11" src="./icons/delapouite/spider-eye.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-12" src="./icons/skoll/troll.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-13" src="./icons/delapouite/ogre.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-14" src="./icons/lorc/minotaur.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-15" src="./icons/lorc/ghost-ally.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-16" src="./icons/lorc/ghost.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-17" src="./icons/delapouite/vampire-dracula.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-18" src="./icons/delapouite/devil-mask.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-19" src="./icons/delapouite/mummy-head.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-20" src="./icons/lorc/skull-in-jar.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-21" src="./icons/lorc/imp.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-22" src="./icons/lorc/imp-laugh.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-23" src="./icons/lorc/scorpion.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-24" src="./icons/lorc/vulture.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-25" src="./icons/lorc/cyclops.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-26" src="./icons/delapouite/golem-head.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-27" src="./icons/lorc/wyvern.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-28" src="./icons/faithtoken/dragon-head.png" width="64" height="64">
+  <img crossorigin="anonymous" id="enemy-29" src="./icons/lorc/dragon-head.png" width="64" height="64">
+</div>
+<div id="loading">
+  <div>
+    <div class="spin"></div>
+    <p style="margin-top: 14px">Loading...</p>
+  </div>
+</div>
+<div id="title-screen">
+  <h1>⟡ DUNGEON//LOAD</h1>
+  <p>Unknown cartridge detected.<br>Analyze it and load a new dungeon.</p>
+  <button id="btn-start">▶ LOAD</button>
+  <div id="title-monster-stream" aria-hidden="true"><div id="title-monster-track"></div></div>
+</div>
+<div id="town-screen" aria-label="Town hub">
+  <h2>ASHENHOLD</h2>
+  <p>Choose a place to prepare for your next expedition.</p>
+  <div id="town-square">
+    <div id="town-locations">
+      <button class="town-location" data-location="blacksmith" type="button">
+        <img crossorigin="anonymous" src="./icons/lorc/anvil.png" alt="">
+        <span>BLACKSMITH</span>
+      </button>
+      <button class="town-location" data-location="guild" type="button">
+        <img crossorigin="anonymous" src="./icons/sbed/helmet.png" alt="">
+        <span>GUILD</span>
+      </button>
+      <button class="town-location" data-location="church" type="button">
+        <img crossorigin="anonymous" src="./icons/delapouite/church.png" alt="">
+        <span>CHURCH</span>
+      </button>
+      <button class="town-location" data-location="items" type="button">
+        <img crossorigin="anonymous" src="./icons/delapouite/shop.png" alt="">
+        <span>ITEM SHOP</span>
+      </button>
+      <button class="town-location" data-location="colosseum" type="button">
+        <img crossorigin="anonymous" src="./icons/sbed/arena.png" alt="">
+        <span>COLOSSEUM</span>
+      </button>
+      <button class="town-location" data-location="dungeon" type="button">
+        <img crossorigin="anonymous" src="./icons/delapouite/gate.png" alt="">
+        <span>DUNGEON</span>
+      </button>
+    </div>
+  </div>
+  <div id="town-panel" aria-live="polite"></div>
+</div>
+<div id="game-over">
+  <h2>💀 GAME OVER 💀</h2>
+  <p id="game-over-msg">Cartridge analysis failed.</p>
+  <button id="btn-retry">↺ RELOAD</button>
+  <div id="clear-monster-stream" aria-hidden="true"></div>
+</div>
+<div id="party-battle-screen" class="party-battle-screen" aria-label="Party battle">
+  <div class="party-battle-title">PARTY DUNGEON BATTLE</div>
+  <div id="party-battlefield" class="party-battlefield"></div>
+  <div id="party-command-bar" class="party-command-bar"></div>
+  <div id="party-battle-log" class="party-battle-log">Choose a party member.</div>
+  <button id="party-battle-leave" class="town-close" type="button">RETURN TO TOWN</button>
+</div>
+<div id="pit-fall-overlay" aria-hidden="true">
+  <img crossorigin="anonymous" id="pit-fall-player" src="./icons/cathelineau/swordman.png" alt="">
+</div>
+<div id="container">
+  <div id="ui-upper">
+    <div id="tab-content">
+      <button id="panel-close" type="button" aria-label="Close panel">CLOSE</button>
+      <div id="tab-status" class="tab-panel">
+        <div style="padding: 16px;">
+          <div class="stat-item">
+            <span class="stat-label">LV</span>
+            <span class="stat-value" id="level-display">1</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">DEPTH</span>
+            <span class="stat-value" id="depth-display">F1</span>
+          </div>
+          <div class="stat-item" style="border-top: 1px solid rgba(0,200,255,0.2); padding-top: 8px; margin-top: 8px;">
+            <span class="stat-label">STATUS</span>
+            <span class="stat-value">CARTRIDGE READY</span>
+          </div>
+        </div>
+      </div>
+      <div id="tab-equipment" class="tab-panel">
+        <div style="padding: 16px;">
+          <div class="stat-item">
+            <span class="stat-label">⚔️ WEAPON</span>
+            <span class="stat-value" id="weapon-display">Wooden Sword (+3)</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">🛡️ ARMOR</span>
+            <span class="stat-value" id="armor-display">None</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">💍 ACCESSORY</span>
+            <span class="stat-value" id="accessory-display">None</span>
+          </div>
+          <div class="stat-item" style="border-top: 1px solid rgba(0,200,255,0.2); padding-top: 8px; margin-top: 8px;">
+            <span class="stat-label">ATTACK BONUS</span>
+            <span class="stat-value" id="atk-bonus-display">+3</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">DEFENSE BONUS</span>
+            <span class="stat-value" id="def-bonus-display">+0</span>
+          </div>
+        </div>
+      </div>
+      <div id="tab-items" class="tab-panel"></div>
+      <div id="tab-settings" class="tab-panel"></div>
+      <div id="tab-log" class="tab-panel"></div>
+      <div id="tab-map" class="tab-panel">
+        <div style="padding: 12px; display: flex; flex-direction: column; gap: 10px; height: 100%;">
+          <canvas id="dungeon-map" style="width: 100%; flex: 1; min-height: 0; display: block; object-fit: contain;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="game-top-info" aria-live="polite"></div>
+<div id="canvas-wrap">
+  <canvas id="game-canvas" style="display: none; width: 100%; height: 100%; max-width: 100%;"></canvas>
+  <canvas id="game-canvas-3d" style="display: block; width: 100%; height: 100%; max-width: 100%;"></canvas>
+  <canvas id="game-canvas-tiny" style="display: none; width: 100%; height: 100%; max-width: 100%;"></canvas>
+  <button id="view-toggle" style="position: absolute; top: 10px; right: 10px; z-index: 30; padding: 8px 16px; background: rgba(0,200,255,0.2); border: 1px solid #0ff; color: #0ff; cursor: pointer; border-radius: 4px; font-family: monospace; font-size: 0.8em;">2D</button>
+  <button id="tiny-toggle" style="position: absolute; top: 10px; right: 142px; z-index: 30; padding: 8px 10px; background: rgba(255,170,80,0.2); border: 1px solid #ffaa50; color: #ffc080; cursor: pointer; border-radius: 4px; font-family: monospace; font-size: 0.7em;">TINY MODE</button>
+  <button id="no-damage-quick-toggle" style="position: absolute; top: 10px; right: 78px; z-index: 30; padding: 8px 10px; background: rgba(0,200,255,0.2); border: 1px solid #0ff; color: #0ff; cursor: pointer; border-radius: 4px; font-family: monospace; font-size: 0.7em;">NO DAMAGE: ON</button>
+  <button id="ui-toggle-btn" style="position: absolute; top: 50px; right: 10px; z-index: 30; padding: 6px 12px; background: rgba(0,200,255,0.2); border: 1px solid #0ff; color: #0ff; cursor: pointer; border-radius: 4px; font-family: monospace; font-size: 0.8em; display: none;">▼ Hide UI</button>
+  <div id="game-3d-hud" style="display: none; position: absolute; top: 10px; left: 10px; z-index: 30; min-width: 150px; padding: 7px 9px; border: 1px solid rgba(0,200,255,0.7); border-radius: 4px; background: rgba(0,10,20,0.82); color: #0ff; font: 12px monospace; line-height: 1.5; text-shadow: 0 0 5px #0ff;"></div>
+</div>
+<div id="game-info-panel">
+  <div id="message-log"></div>
+  <div id="game-controls">
+    <div id="game-controls-title">Controls</div>
+    <div id="game-controls-list">
+      <div><b style="color: #fff;">WASD / Arrows</b> Move</div>
+      <div><b style="color: #fff;">Z</b> Weapon attack / Staff magic</div>
+      <div><b style="color: #fff;">X</b> Jump / dodge forward 3 tiles</div>
+      <div><b style="color: #fff;">C</b> Sword guard</div>
+      <div><b style="color: #fff;">1 - 4</b> Switch weapon</div>
+      <div><b style="color: #fff;">Shift + Arrows</b> Steer active staff magic</div>
+    </div>
+  </div>
+</div>
+<div id="mobile-action-pad" style="position: fixed; bottom: 70px; left: 10px; z-index: 50; display: none; align-items: flex-end; gap: 8px;">
+  <div class="mobile-weapon-slots" aria-label="Weapon slots">
+    <button id="weapon-prev-button" class="mobile-cycle-button" type="button" aria-label="Previous weapon">L</button>
+    <button class="mobile-weapon-slot" data-weapon-slot="0" type="button" aria-label="Weapon slot 1"><span class="slot-number">1</span><span class="slot-icon">⚔️</span></button>
+    <button class="mobile-weapon-slot" data-weapon-slot="1" type="button" aria-label="Weapon slot 2"><span class="slot-number">2</span><span class="slot-icon">🗡️</span></button>
+    <button class="mobile-weapon-slot" data-weapon-slot="2" type="button" aria-label="Weapon slot 3"><span class="slot-number">3</span><span class="slot-icon">🏹</span></button>
+    <button class="mobile-weapon-slot" data-weapon-slot="3" type="button" aria-label="Weapon slot 4"><span class="slot-number">4</span><span class="slot-icon">🪄</span></button>
+    <button id="weapon-next-button" class="mobile-cycle-button" type="button" aria-label="Next weapon">R</button>
+  </div>
+  <div id="mobile-weapon-label" style="position: absolute; left: 0; bottom: -24px; width: 100%; color: #0ff; text-align: center; font-size: 11px; text-shadow: 0 0 6px #0ff;">Wooden Sword</div>
+</div>
+<div id="mobile-action-buttons">
+  <button id="attack-button" type="button" aria-label="Weapon attack" style="width: 88px; height: 88px; background: rgba(0,255,255,0.2); border: 2px solid #0ff; border-radius: 50%; color: #0ff; font-weight: bold; cursor: pointer; font-size: 32px; touch-action: none;">⚔️</button>
+  <button id="jump-button" type="button" aria-label="Jump and dodge" style="width: 88px; height: 88px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.8); border-radius: 50%; color: #fff; font-weight: bold; cursor: pointer; font-size: 32px; touch-action: none;">🤸</button>
+</div>
+<div id="movement-joystick" style="position: fixed; bottom: 60px; right: 10px; z-index: 50; display: none; width: 120px; height: 120px; background: rgba(0,200,255,0.2); border: 2px solid #0ff; border-radius: 50%; padding: 10px;">
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; height: 100%;">
+    <div></div>
+    <button id="btn-up" type="button" style="background: rgba(0,200,255,0.6); border: 1px solid rgba(0,200,255,0.6); border-radius: 3px; color: #0ff; font-weight: bold; cursor: pointer; touch-action: none;">↑</button>
+    <div></div>
+    <button id="btn-left" type="button" style="background: rgba(0,200,255,0.6); border: 1px solid rgba(0,200,255,0.6); border-radius: 3px; color: #0ff; font-weight: bold; cursor: pointer; touch-action: none;">←</button>
+    <div></div>
+    <button id="btn-right" type="button" style="background: rgba(0,200,255,0.6); border: 1px solid rgba(0,200,255,0.6); border-radius: 3px; color: #0ff; font-weight: bold; cursor: pointer; touch-action: none;">→</button>
+    <div></div>
+    <button id="btn-down" type="button" style="background: rgba(0,200,255,0.6); border: 1px solid rgba(0,200,255,0.6); border-radius: 3px; color: #0ff; font-weight: bold; cursor: pointer; touch-action: none;">↓</button>
+    <div></div>
+  </div>
+</div>
+<div id="nav-bar">
+  <button class="nav-btn" data-tab="status"><i class="ra ra-player"></i> Status</button>
+  <button class="nav-btn" data-tab="equipment"><img crossorigin="anonymous" class="nav-icon" src="./icons/lorc/broadsword.png" alt=""> Equipment</button>
+  <button class="nav-btn" data-tab="items"><i class="ra ra-potion"></i> Items</button>
+  <button class="nav-btn" data-tab="settings"><i class="ra ra-cog"></i> Settings</button>
+  <button class="nav-btn" data-tab="log"><i class="ra ra-scroll-unfurled"></i> Log</button>
+  <button class="nav-btn" data-tab="map"><i class="ra ra-compass"></i> Map</button>
+</div>
+<div id="swipe-hint">
+  <span class="sh-arrow sh-up">▲</span>
+  <span class="sh-arrow sh-down">▼</span>
+  <span class="sh-arrow sh-left">◀</span>
+  <span class="sh-arrow sh-right">▶</span>
+</div>
+<script type="module">
+import init, * as wasm from './wasm/wasm_dungeonload.js?canvas-scale=1&ui=32&pit=10';
+import { FontLoader, InputManager } from './engine.js';
+import { createDungeonLoadUi } from './ui.js?overlay=16';
+import { readScene, toRuntime, getFloor } from './scene-format.js';
+window.wasm = wasm;
+const ui = createDungeonLoadUi({ wasm });
+
+const clearScreenIconIds = ['player-icon', ...Array.from({ length: 30 }, (_, index) => `enemy-${index}`)];
+const clearScreenIconNames = ['HERO', 'Young Goblin', 'Goblin', 'Hobgoblin', 'Young Bat', 'Bat', 'Giant Bat', 'Skeleton', 'Skeleton Warrior', 'Skeleton Knight', 'Young Spider', 'Spider', 'Giant Spider', 'Young Troll', 'Troll', 'Troll King', 'Zombie', 'Zombie Warrior', 'Zombie Lord', 'Spirit', 'Ghost', 'Phantom', 'Mummy', 'Mummy Priest', 'Pharaoh', 'Young Ogre', 'Ogre', 'Ogre Warlord', 'Young Dragon', 'Dragon', 'King Dragon'];
+const titleIconFilters = [
+  'sepia(1) saturate(4) hue-rotate(145deg) drop-shadow(0 0 8px #0ff)',
+  'sepia(1) saturate(5) hue-rotate(165deg) drop-shadow(0 0 8px #08f)',
+  'sepia(1) saturate(5) hue-rotate(195deg) drop-shadow(0 0 8px #08f)',
+  'sepia(1) saturate(4) hue-rotate(225deg) drop-shadow(0 0 8px #66f)',
+  'sepia(1) saturate(4) hue-rotate(105deg) drop-shadow(0 0 8px #0f8)',
+];
+const clearIconFilters = [
+  'sepia(1) saturate(5) hue-rotate(310deg) drop-shadow(0 0 8px #f33)',
+  'sepia(1) saturate(5) hue-rotate(330deg) drop-shadow(0 0 8px #f60)',
+  'sepia(1) saturate(5) hue-rotate(280deg) drop-shadow(0 0 8px #f0f)',
+  'sepia(1) saturate(5) hue-rotate(350deg) drop-shadow(0 0 8px #f44)',
+];
+const titleMonsterTrack = document.getElementById('title-monster-track');
+if (titleMonsterTrack) {
+  [...clearScreenIconIds, ...clearScreenIconIds].forEach((id, streamIndex) => {
+    const source = document.getElementById(id);
+    if (!source) return;
+    const card = document.createElement('div');
+    card.className = 'icon-card';
+    const icon = source.cloneNode(true);
+    icon.removeAttribute('id');
+    icon.style.filter = titleIconFilters[streamIndex % titleIconFilters.length];
+    const label = document.createElement('span');
+    label.className = 'icon-label';
+    label.textContent = clearScreenIconNames[streamIndex % clearScreenIconNames.length];
+    card.append(icon, label);
+    titleMonsterTrack.appendChild(card);
+  });
+}
+
+const KEYMAP = {
+  ArrowUp: 0,    KeyW: 0,
+  ArrowDown: 3,  KeyS: 3,
+  ArrowLeft: 1,  KeyA: 1,
+  ArrowRight: 2, KeyD: 2,
+  KeyZ: 4,
+  KeyX: 5,
+  Digit1: 6,
+  Digit2: 7,
+  Digit3: 8,
+  Digit4: 9,
+  KeyC: 14,
+};
+
+const audio = { ensure: () => {}, play: () => {}, startAmbient: () => {}, setAmbVolume: () => {}, setSeVolume: () => {} };
+const input = new InputManager({ swipeMin: 35 });
+let initialized = false;
+let lastPitFallEvent = 0;
+let selectedSoloSeed = 1;
+let selectedSoloFloor = 1;
+let partyBattleActive = false;
+const partyBattleState = {
+  selected: 0,
+  phase: 'active',
+  heroes: [
+    { name: 'HERO', maxHp: 100, hp: 100, icon: './icons/cathelineau/swordman.png' },
+    { name: 'ARCHER', maxHp: 80, hp: 80, icon: './icons/delapouite/archer.png' },
+    { name: 'ROGUE', maxHp: 75, hp: 75, icon: './icons/lorc/rogue.png' },
+    { name: 'MAGE', maxHp: 65, hp: 65, icon: './icons/delapouite/wizard-face.png' },
+    { name: 'GUARD', maxHp: 110, hp: 110, icon: './icons/sbed/helmet.png' },
+  ],
+  enemies: Array.from({ length: 9 }, (_, index) => ({ name: `ENEMY ${index + 1}`, hp: 40 })),
+};
+const partyEnemyIcons = [
+  './icons/caro-asercion/goblin.png',
+  './icons/delapouite/goblin-head.png',
+  './icons/delapouite/bat.png',
+  './icons/skoll/skeleton.png',
+  './icons/carl-olsen/spider-face.png',
+  './icons/skoll/troll.png',
+  './icons/lorc/ghost.png',
+  './icons/delapouite/ogre.png',
+  './icons/lorc/dragon-head.png',
+];
+const partyEnemyIconIds = ['enemy-0', 'enemy-1', 'enemy-3', 'enemy-7', 'enemy-9', 'enemy-12', 'enemy-16', 'enemy-13', 'enemy-29'];
+
+function renderPartyBattle() {
+  const battlefield = document.getElementById('party-battlefield');
+  const commands = document.getElementById('party-command-bar');
+  if (!battlefield || !commands) return;
+  const heroCells = Array.from({ length: 9 }, (_, index) => {
+    const hero = partyBattleState.heroes[index];
+    return hero
+      ? `
+        <button class="party-cell ${index === partyBattleState.selected ? 'selected' : ''} ${hero.hp <= 0 ? 'defeated' : ''}" data-party-cell="${index}" type="button" ${hero.hp <= 0 ? 'disabled' : ''}>
+          <img crossorigin="anonymous" src="${hero.icon}" alt="${hero.name}"><span class="party-hp">HP ${hero.hp}</span>
+        </button>`
+      : `<button class="party-cell empty" data-party-cell="${index}" type="button" aria-label="Empty party position"></button>`;
+  }).join('');
+  const enemyCells = partyBattleState.enemies.map((enemy, index) => {
+    const loadedIcon = document.getElementById(partyEnemyIconIds[index]);
+    const iconSrc = loadedIcon?.src || partyEnemyIcons[index];
+    return `
+    <div class="party-cell enemy ${enemy.hp <= 0 ? 'defeated' : ''}"><img crossorigin="anonymous" src="${iconSrc}" alt="${enemy.hp > 0 ? enemy.name : 'DEFEATED'}"><span class="party-hp">HP ${enemy.hp}</span></div>`;
+  }).join('');
+  const livingHeroes = partyBattleState.heroes.filter(hero => hero && hero.hp > 0).length;
+  const livingEnemies = partyBattleState.enemies.filter(enemy => enemy.hp > 0).length;
+  battlefield.innerHTML = `<div class="party-grid"><div class="party-grid-label">PARTY ${livingHeroes} / 5</div>${heroCells}</div><div class="party-divider">VS</div><div class="party-grid"><div class="party-grid-label">ENEMIES ${livingEnemies} / 9</div>${enemyCells}</div>`;
+  const disabled = partyBattleState.phase !== 'active' ? ' disabled' : '';
+  commands.innerHTML = `<button class="party-command" data-party-command="attack" type="button"${disabled}>ATTACK</button><button class="party-command" data-party-command="skill" type="button"${disabled}>SKILL</button><button class="party-command" data-party-command="guard" type="button"${disabled}>GUARD</button><button class="party-command" data-party-command="item" type="button"${disabled}>ITEM</button>`;
+}
+
+function nextLivingHero() {
+  const count = partyBattleState.heroes.length;
+  for (let offset = 1; offset <= count; offset++) {
+    const index = (partyBattleState.selected + offset) % count;
+    if (partyBattleState.heroes[index]?.hp > 0) return index;
+  }
+  return partyBattleState.selected;
+}
+
+function resolvePartyCommand(command) {
+  const hero = partyBattleState.heroes[partyBattleState.selected];
+  if (!hero || hero.hp <= 0 || partyBattleState.phase !== 'active') return;
+  const target = partyBattleState.enemies.find(enemy => enemy.hp > 0);
+  let actionText = `${hero.name} used ${command.toUpperCase()}.`;
+  if (command === 'attack' && target) {
+    target.hp = Math.max(0, target.hp - 15);
+    actionText = `${hero.name} attacked ${target.name} for 15 damage.`;
+  } else if (command === 'skill' && target) {
+    target.hp = Math.max(0, target.hp - 25);
+    actionText = `${hero.name} cast a skill on ${target.name} for 25 damage.`;
+  } else if (command === 'guard') {
+    hero.guarded = true;
+    actionText = `${hero.name} is guarding this turn.`;
+  } else if (command === 'item') {
+    const before = hero.hp;
+    hero.hp = Math.min(hero.maxHp, hero.hp + 20);
+    actionText = `${hero.name} recovered ${hero.hp - before} HP.`;
+  }
+  const livingEnemies = partyBattleState.enemies.filter(enemy => enemy.hp > 0);
+  if (!livingEnemies.length) {
+    partyBattleState.phase = 'victory';
+    document.getElementById('party-battle-log').textContent = `${actionText} VICTORY!`;
+    renderPartyBattle();
+    return;
+  }
+  const targetHero = partyBattleState.heroes.find(member => member && member.hp > 0);
+  if (targetHero) {
+    const damage = targetHero.guarded ? 4 : 8;
+    targetHero.hp = Math.max(0, targetHero.hp - damage);
+    targetHero.guarded = false;
+    actionText += ` ${targetHero.name} received ${damage} damage.`;
+  }
+  if (!partyBattleState.heroes.some(member => member && member.hp > 0)) {
+    partyBattleState.phase = 'defeat';
+    actionText += ' PARTY DEFEATED.';
+  } else {
+    partyBattleState.selected = nextLivingHero();
+  }
+  document.getElementById('party-battle-log').textContent = actionText;
+  renderPartyBattle();
+}
+
+function enterPartyDungeon() {
+  partyBattleActive = true;
+  partyBattleState.selected = 0;
+  partyBattleState.phase = 'active';
+  partyBattleState.heroes.forEach(hero => {
+    if (hero) {
+      hero.hp = hero.maxHp;
+      hero.guarded = false;
+    }
+  });
+  partyBattleState.enemies = Array.from({ length: 9 }, (_, index) => ({ name: `ENEMY ${index + 1}`, hp: 40 }));
+  document.getElementById('town-screen')?.classList.remove('active');
+  document.getElementById('party-battle-screen')?.classList.add('active');
+  document.getElementById('party-battle-log').textContent = 'Choose a party member.';
+  renderPartyBattle();
+}
+
+function leavePartyDungeon() {
+  partyBattleActive = false;
+  document.getElementById('party-battle-screen')?.classList.remove('active');
+  document.getElementById('town-screen')?.classList.add('active');
+}
+
+function updatePitFallTransition() {
+  const event = typeof wasm.pit_fall_event_roguelike === 'function'
+    ? wasm.pit_fall_event_roguelike()
+    : 0;
+  if (event <= lastPitFallEvent) return;
+  lastPitFallEvent = event;
+  const overlay = document.getElementById('pit-fall-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('active');
+  void overlay.offsetWidth;
+  overlay.classList.add('active');
+  window.setTimeout(() => overlay.classList.remove('active'), 650);
+}
+
+function showTownPanel(location) {
+  const panel = document.getElementById('town-panel');
+  if (!panel) return;
+  const content = {
+    blacksmith: ['BLACKSMITH', 'Repair weapons and prepare new cartridges.'],
+    guild: ['GUILD', 'Review expeditions, enemy records, and dungeon requests.'],
+    church: ['CHURCH', 'Restore your spirit before the next expedition.'],
+    items: ['ITEM SHOP', 'Check potions, materials, and recovered loot.'],
+    colosseum: ['COLOSSEUM', 'Challenge combat trials. This facility is under construction.'],
+  }[location];
+  if (location === 'dungeon') {
+    panel.innerHTML = `
+      <div class="town-panel-title">DUNGEON SELECT</div>
+      <div class="town-panel-copy">Choose a dungeon cartridge, seed, and starting floor.</div>
+      <div class="dungeon-seed-controls">
+        <label>SEED
+          <input id="dungeon-seed-input" type="number" min="1" max="4294967295" step="1" value="1" inputmode="numeric">
+        </label>
+        <label>START FLOOR
+          <input id="dungeon-floor-input" type="number" min="1" max="30" step="1" value="1" inputmode="numeric">
+        </label>
+      </div>
+      <div class="dungeon-options">
+        <button class="dungeon-option" data-dungeon="party" type="button">
+          <span>PARTY DUNGEON<br><small>COMMAND BATTLE</small></span><small>5 vs 9 GRID</small>
+        </button>
+        <button class="dungeon-option" data-dungeon="grass-cave" type="button">
+          <span>GRASS CAVE<br><small>F1 - F10</small></span><small>GENERATION COST: 20</small>
+        </button>
+        <button class="dungeon-option" data-dungeon="abandoned-mine" type="button">
+          <span>ABANDONED MINE<br><small>F11 - F20</small></span><small>GENERATION COST: 35</small>
+        </button>
+        <button class="dungeon-option" data-dungeon="ancient-ruins" type="button">
+          <span>ANCIENT RUINS<br><small>F21 - F30</small></span><small>GENERATION COST: 60</small>
+        </button>
+      </div>`;
+  } else if (content) {
+    panel.innerHTML = `
+      <div class="town-panel-title">${content[0]}</div>
+      <div class="town-panel-copy">${content[1]}</div>
+      <div class="town-coming-soon">COMING SOON</div>
+      <button class="town-close" type="button">CLOSE</button>`;
+  }
+  panel.classList.remove('active');
+  void panel.offsetWidth;
+  panel.classList.add('active');
+}
+
+function enterDungeon() {
+  document.getElementById('town-screen')?.classList.remove('active');
+  document.getElementById('nav-bar').style.display = 'flex';
+  document.getElementById('mobile-action-pad').style.display = 'flex';
+  document.getElementById('mobile-action-buttons').style.display = 'flex';
+  document.getElementById('movement-joystick').style.display = 'flex';
+  document.getElementById('game-info-panel').style.display = 'block';
+  document.getElementById('game-top-info').style.display = 'flex';
+  document.getElementById('attack-button').style.display = 'block';
+  document.getElementById('jump-button').style.display = 'block';
+  document.getElementById('weapon-prev-button').style.display = 'block';
+  document.getElementById('weapon-next-button').style.display = 'block';
+  document.getElementById('ui-toggle-btn').classList.add('show');
+  const isLandscape = window.innerHeight < window.innerWidth;
+  if (isLandscape) document.getElementById('ui-upper').style.display = 'flex';
+  lastPitFallEvent = 0;
+  if (typeof wasm.set_run_seed_roguelike === 'function') {
+    wasm.set_run_seed_roguelike(selectedSoloSeed);
+  }
+  if (typeof wasm.set_start_depth_roguelike === 'function') {
+    wasm.set_start_depth_roguelike(selectedSoloFloor);
+  }
+  wasm.start_game_roguelike();
+}
+
+async function start() {
+  try {
+    await init();
+    await FontLoader.load('GenInterfaceJP', wasm);
+    wasm.init_roguelike();
+    ui.applyGamePalette();
+
+    document.getElementById('loading').style.display = 'none';
+    initialized = true;
+    await initializeMindzjImport();
+
+    input.onAction(action => {
+      if (initialized) wasm.move_roguelike(action);
+    });
+
+    // Shift + arrow steers an already-cast magic projectile without moving the player.
+    document.addEventListener('keydown', e => {
+      if (!e.shiftKey) return;
+      const direction = {
+        ArrowUp: 0, KeyW: 0,
+        ArrowLeft: 1, KeyA: 1,
+        ArrowRight: 2, KeyD: 2,
+        ArrowDown: 3, KeyS: 3,
+      }[e.code];
+      if (direction === undefined) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (initialized) wasm.move_roguelike(10 + direction);
+    });
+    input.bindKeyboard(KEYMAP);
+    input.bindSwipe(['#ui-upper', '#canvas-wrap'], {
+      onStart: () => {},
+      onHint: ui.flashHint,
+    });
+
+    document.getElementById('btn-start').addEventListener('click', () => {
+      document.getElementById('title-screen').style.display = 'none';
+      document.getElementById('town-screen').classList.add('active');
+    });
+
+    document.querySelectorAll('.town-location').forEach(button => {
+      button.addEventListener('click', () => {
+        button.classList.remove('selected');
+        void button.offsetWidth;
+        button.classList.add('selected');
+        showTownPanel(button.dataset.location);
+      });
+    });
+    document.getElementById('town-panel').addEventListener('click', event => {
+      const dungeonButton = event.target.closest('[data-dungeon]');
+      if (dungeonButton) {
+        if (dungeonButton.disabled) return;
+        dungeonButton.disabled = true;
+        if (dungeonButton.dataset.dungeon === 'party') {
+          enterPartyDungeon();
+          return;
+        }
+        const seedInput = document.getElementById('dungeon-seed-input');
+        const floorInput = document.getElementById('dungeon-floor-input');
+        selectedSoloSeed = Math.trunc(Math.max(1, Math.min(0xFFFF_FFFF, Number(seedInput?.value) || 1)));
+        selectedSoloFloor = Math.trunc(Math.max(1, Math.min(30, Number(floorInput?.value) || 1)));
+        const panel = document.getElementById('town-panel');
+        panel.classList.add('launching');
+        panel.innerHTML = '<div class="town-loading">CARTRIDGE LOADING...</div>';
+        window.setTimeout(() => {
+          panel.classList.remove('launching');
+          enterDungeon();
+        }, 680);
+        return;
+      }
+      if (event.target.closest('.town-close')) {
+        document.getElementById('town-panel').classList.remove('active');
+      }
+    });
+    document.getElementById('party-battle-screen').addEventListener('click', event => {
+      const partyCell = event.target.closest('[data-party-cell]');
+      if (partyCell) {
+        const cellIndex = Number(partyCell.dataset.partyCell);
+        if (partyBattleState.heroes[cellIndex]) {
+          partyBattleState.selected = cellIndex;
+        } else if (partyBattleState.heroes[partyBattleState.selected]) {
+          partyBattleState.heroes[cellIndex] = partyBattleState.heroes[partyBattleState.selected];
+          partyBattleState.heroes[partyBattleState.selected] = null;
+          partyBattleState.selected = cellIndex;
+        }
+        renderPartyBattle();
+        return;
+      }
+      const commandButton = event.target.closest('[data-party-command]');
+      if (commandButton) {
+        resolvePartyCommand(commandButton.dataset.partyCommand);
+      }
+    });
+    document.getElementById('party-battle-leave').addEventListener('click', leavePartyDungeon);
+
+    document.getElementById('btn-retry').addEventListener('click', () => {
+      if(importedScene){activateMindzjScene(importedScene);return;}
+      document.getElementById('game-over').style.display = 'none';
+      document.getElementById('game-over').classList.remove('victory');
+      document.getElementById('mobile-action-pad').style.display = 'none';
+      document.getElementById('mobile-action-buttons').style.display = 'none';
+      document.getElementById('movement-joystick').style.display = 'none';
+      document.getElementById('game-info-panel').style.display = 'none';
+      document.getElementById('game-top-info').style.display = 'none';
+      document.getElementById('attack-button').style.display = 'none';
+      document.getElementById('jump-button').style.display = 'none';
+      document.getElementById('weapon-prev-button').style.display = 'none';
+      document.getElementById('weapon-next-button').style.display = 'none';
+      document.getElementById('ui-toggle-btn').classList.remove('show');
+      lastPitFallEvent = 0;
+      wasm.init_roguelike();
+      ui.applyGamePalette();
+      document.getElementById('town-panel').classList.remove('active');
+      document.getElementById('town-screen').classList.add('active');
+    });
+
+    const joystick = document.getElementById('movement-joystick');
+    let joystickTouchStart = { x: 0, y: 0 };
+    const moveByButton = (action) => {
+      if (!initialized) return;
+      wasm.move_roguelike(action);
+    };
+    const bindButton = (id, action) => {
+      const button = document.getElementById(id);
+      if (!button) return;
+      const handler = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        moveByButton(action);
+      };
+      button.addEventListener('pointerdown', handler);
+    };
+    bindButton('btn-up', 0);
+    bindButton('btn-left', 1);
+    bindButton('btn-right', 2);
+    bindButton('btn-down', 3);
+    joystick.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      joystickTouchStart = { x: touch.clientX, y: touch.clientY };
+    });
+    joystick.addEventListener('touchend', (e) => {
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - joystickTouchStart.x;
+      const dy = touch.clientY - joystickTouchStart.y;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 20) wasm.move_roguelike(2);
+        else if (dx < -20) wasm.move_roguelike(1);
+      } else {
+        if (dy > 20) wasm.move_roguelike(3);
+        else if (dy < -20) wasm.move_roguelike(0);
+      }
+    });
+
+    const bindActionButton = (id, action) => {
+      const button = document.getElementById(id);
+      if (!button) return;
+      button.addEventListener('pointerdown', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (initialized) wasm.move_roguelike(action);
+      });
+    };
+    bindActionButton('attack-button', 4);
+    bindActionButton('jump-button', 5);
+
+    const weaponNames = ['Wooden Sword', 'Iron Sword', 'Spear', 'Bow', 'Staff', 'Cursed Blade'];
+    const weaponIcons = ['⚔️', '🗡️', '🔱', '🏹', '🪄', '☠️'];
+    const mobileWeaponLabel = document.getElementById('mobile-weapon-label');
+    const mobileWeaponSlots = Array.from(document.querySelectorAll('.mobile-weapon-slot'));
+    const updateMobileWeaponSlots = () => {
+      const inventory = initialized ? wasm.weapon_inventory_roguelike() : [];
+      const equippedWeapon = initialized ? wasm.player_equipped_weapon_roguelike() : -1;
+      mobileWeaponSlots.forEach((button, slot) => {
+        const icon = button.querySelector('.slot-icon');
+        const weaponId = inventory[slot];
+        const available = weaponId !== undefined;
+        button.classList.toggle('active', available && weaponId === equippedWeapon);
+        button.classList.toggle('empty', !available);
+        button.disabled = !available;
+        button.setAttribute('aria-label', available
+          ? `Weapon slot ${slot + 1}: ${weaponNames[weaponId] || 'Weapon'}`
+          : `Weapon slot ${slot + 1}: Empty`);
+        if (icon) icon.textContent = available ? (weaponIcons[weaponId] || '⚔️') : '·';
+      });
+    };
+    mobileWeaponSlots.forEach((button) => {
+      button.addEventListener('pointerdown', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!initialized || button.disabled) return;
+        const slot = Number(button.dataset.weaponSlot);
+        if (wasm.equip_weapon_roguelike(slot)) updateMobileWeaponSlots();
+      });
+    });
+    const cycleWeapon = (direction) => {
+      if (!initialized) return;
+      const inventory = wasm.weapon_inventory_roguelike();
+      if (!inventory.length) return;
+      const currentWeapon = wasm.player_equipped_weapon_roguelike();
+      let currentIndex = inventory.findIndex((weapon) => weapon === currentWeapon);
+      if (currentIndex < 0) currentIndex = 0;
+      const nextIndex = (currentIndex + direction + inventory.length) % inventory.length;
+      if (wasm.equip_weapon_roguelike(nextIndex)) {
+        mobileWeaponLabel.textContent = weaponNames[inventory[nextIndex]] || 'Weapon';
+        updateMobileWeaponSlots();
+      }
+    };
+
+    const weaponPrevButton = document.getElementById('weapon-prev-button');
+    weaponPrevButton.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      cycleWeapon(-1);
+    });
+
+    const weaponNextButton = document.getElementById('weapon-next-button');
+    weaponNextButton.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      cycleWeapon(1);
+    });
+
+    ui.setupNavigation();
+
+    function update() {
+      if (initialized) {
+        const tabPanelOpen = document.getElementById('ui-upper')?.classList.contains('panel-open');
+        if (!tabPanelOpen && !partyBattleActive) {
+          wasm.tick_roguelike(performance.now());
+        }
+        updateMobileWeaponSlots();
+        render();
+      }
+      updateMindzjNote();
+      requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+function render() {
+  if (!initialized) return;
+  if (partyBattleActive) return;
+  updatePitFallTransition();
+  const noDamageButton = document.getElementById('no-damage-quick-toggle');
+  if (noDamageButton) {
+    noDamageButton.textContent = `NO DAMAGE: ${wasm.no_damage_mode_roguelike() ? 'ON' : 'OFF'}`;
+  }
+  ui.updateMessageLog();
+  const mobileWeaponLabel = document.getElementById('mobile-weapon-label');
+  if (mobileWeaponLabel) {
+    const weaponNames = ['Wooden Sword', 'Iron Sword', 'Spear', 'Bow', 'Staff', 'Cursed Blade'];
+    const equippedWeapon = wasm.player_equipped_weapon_roguelike();
+    mobileWeaponLabel.textContent = weaponNames[equippedWeapon] || 'No Weapon';
+  }
+  document.querySelectorAll('.mobile-weapon-slot').forEach((button, slot) => {
+    const inventory = wasm.weapon_inventory_roguelike();
+    const weaponId = inventory[slot];
+    button.classList.toggle('active', weaponId !== undefined && weaponId === wasm.player_equipped_weapon_roguelike());
+    button.classList.toggle('empty', weaponId === undefined);
+    button.disabled = weaponId === undefined;
+  });
+
+  const activeTab = document.querySelector('.nav-btn.active');
+  if (activeTab) {
+    const tabName = activeTab.getAttribute('data-tab');
+    const panel = document.getElementById(`tab-${tabName}`);
+    if (tabName === 'status' && panel) {
+      ui.updateStatusTab(panel);
+    } else if (tabName === 'map') {
+      ui.drawDungeonMap();
+    } else if (tabName === 'equipment') {
+      ui.updateEquipmentDisplay();
+    } else if (tabName === 'items') {
+      ui.updateItemsDisplay();
+    }
+  }
+  if (isTinyMode) {
+    renderTinyDungeon();
+  } else if (is3dMode) {
+    render3d();
+  } else {
+    renderCanvas();
+  }
+  const sceneState = wasm.scene_roguelike();
+  if (sceneState === 2 || sceneState === 3) {
+    const gameOver = document.getElementById('game-over');
+    const title = gameOver.querySelector('h2');
+    const message = document.getElementById('game-over-msg');
+    const retry = document.getElementById('btn-retry');
+    const victory = sceneState === 3;
+    gameOver.classList.toggle('victory', victory);
+    title.textContent = victory ? 'DUNGEON//LOAD COMPLETE' : '💀 GAME OVER 💀';
+    title.style.color = '#f44';
+    title.style.textShadow = '0 0 20px #f44';
+    message.textContent = victory ? 'The warp hole carried you beyond the dungeon.' : importedScene && wasm.map_data_roguelike()[wasm.player_y_roguelike()*wasm.map_width_roguelike()+wasm.player_x_roguelike()]===5 ? '下の階がありません。落とし穴に落ちてゲームオーバー。' : 'Cartridge analysis failed.';
+    message.style.color = '#f88';
+    retry.textContent = victory ? '↺ RESTART' : '↺ RELOAD';
+    if (victory) {
+      const stream = document.getElementById('clear-monster-stream');
+      if (!stream.dataset.ready) {
+        const track = document.createElement('div');
+        track.id = 'clear-monster-track';
+        const monsterIds = ['player-icon', ...Array.from({ length: 30 }, (_, index) => `enemy-${index}`)];
+        [...monsterIds, ...monsterIds].forEach((id, streamIndex) => {
+          const source = document.getElementById(id);
+          if (!source) return;
+          const card = document.createElement('div');
+          card.className = 'icon-card';
+          const icon = source.cloneNode(true);
+          icon.removeAttribute('id');
+          if (id === 'player-icon') icon.classList.add('clear-hero');
+          icon.style.filter = clearIconFilters[streamIndex % clearIconFilters.length];
+          const label = document.createElement('span');
+          label.className = 'icon-label';
+          label.textContent = clearScreenIconNames[streamIndex % clearScreenIconNames.length];
+          card.append(icon, label);
+          track.appendChild(card);
+        });
+        stream.appendChild(track);
+        stream.dataset.ready = 'true';
+      }
+    }
+    gameOver.style.display = 'flex';
+  }
+}
+
+function updateStatusTab(panel) { ui.updateStatusTab(panel); }
+function updateEquipmentTab(panel) { ui.updateEquipmentTab(panel); }
+function selectEquipmentSlot(slot, event) { ui.selectEquipmentSlot(slot, event); }
+function updateEquipmentDisplay() { ui.updateEquipmentDisplay(); }
+function updateItemsDisplay() { ui.updateItemsDisplay(); }
+function useHealthPotion(event) {
+  if (event) event.stopPropagation();
+  if (wasm.use_item_roguelike(0)) {
+    ui.updateItemsDisplay();
+  }
+}
+function updateMessageLog() { ui.updateMessageLog(); }
+function flashHint(action) { ui.flashHint(action); }
+function setupNavigation() { ui.setupNavigation(); }
+function updateTabContent(tabName) { ui.updateTabContent(tabName); }
+function drawDungeonMap() { ui.drawDungeonMap(); }
+let scene, camera, renderer;
+let cubes = [];
+let playerCube, enemies3d = [];
+let enemyHudSprites = [], worldIconSprites = [], damageSprites = [], attackEffectSprites = [], projectileSprites = [];
+let is3dMode = true;
+let isTinyMode = false;
+const tinyTileImages = [];
+const tinyEnemyTiles = Array.from({ length: 30 }, () => 108);
+const tinyCharacterTiles = { player: 97, enemy: tinyEnemyTiles };
+function loadTinyDungeonTiles() {
+  if (tinyTileImages.length) return;
+  for (let tileId = 0; tileId < 132; tileId++) {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.src = `./assets/kenney-tiny-dungeon/tiles/tile_${String(tileId).padStart(4, '0')}.png`;
+    tinyTileImages[tileId] = image;
+  }
+}
+function drawTinyTile(ctx, tileId, x, y, size) {
+  loadTinyDungeonTiles();
+  const image = tinyTileImages[tileId];
+  if (!image.complete || !image.naturalWidth) {
+    ctx.fillStyle = '#55506a';
+    ctx.fillRect(x, y, size, size);
+    return;
+  }
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(image, 0, 0, 16, 16, x, y, size, size);
+}
+function renderTinyDungeon() {
+  const canvas = document.getElementById('game-canvas-tiny');
+  const wrap = document.getElementById('canvas-wrap');
+  if (!canvas || !wrap) return;
+  const width = Math.max(1, wrap.clientWidth);
+  const height = Math.max(1, wrap.clientHeight);
+  const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(width * pixelRatio);
+  canvas.height = Math.round(height * pixelRatio);
+  canvas.style.width = `${width}px`;
+  canvas.style.height = `${height}px`;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = '#1b1d2b';
+  ctx.fillRect(0, 0, width, height);
+
+  const mapWidth = wasm.map_width_roguelike();
+  const mapHeight = wasm.map_height_roguelike();
+  const playerX = wasm.player_x_roguelike();
+  const playerY = wasm.player_y_roguelike();
+  const mapData = wasm.map_data_roguelike();
+  const viewRadius = 12;
+  // Keep the viewport tile count fixed at map edges so movement never
+  // changes the apparent resolution or tile size.
+  const visibleWidth = Math.min(mapWidth, viewRadius * 2 + 1);
+  const visibleHeight = Math.min(mapHeight, viewRadius * 2 + 1);
+  const minX = Math.min(Math.max(0, playerX - viewRadius), mapWidth - visibleWidth);
+  const maxX = minX + visibleWidth - 1;
+  const minY = Math.min(Math.max(0, playerY - viewRadius), mapHeight - visibleHeight);
+  const maxY = minY + visibleHeight - 1;
+  const cell = Math.max(16, Math.floor(Math.min(width / visibleWidth, height / visibleHeight)));
+  const originX = Math.floor((width - visibleWidth * cell) / 2);
+  const originY = Math.floor((height - visibleHeight * cell) / 2);
+  const tileIds = {
+    floor: 0,
+    wall: 14,
+    wallRightEdge: 13,
+    wallLeftEdge: 15,
+    wallBottomLeft: 16,
+    wallTopLeft: 17,
+    stairsUp: 8,
+    stairsDown: 9,
+  };
+  const isWall = (x, y) => x >= 0 && x < mapWidth && y >= 0 && y < mapHeight
+    && mapData[y * mapWidth + x] === 1;
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      const tile = mapData[y * mapWidth + x];
+      const drawX = originX + (x - minX) * cell;
+      const drawY = originY + (y - minY) * cell;
+      if (tile === 1) {
+        const openLeft = !isWall(x - 1, y);
+        const openRight = !isWall(x + 1, y);
+        const openAbove = !isWall(x, y - 1);
+        const openBelow = !isWall(x, y + 1);
+        let wallTile = tileIds.wall;
+        if (openLeft && openAbove) wallTile = tileIds.wallTopLeft;
+        else if (openLeft && openBelow) wallTile = tileIds.wallBottomLeft;
+        else if (openLeft) wallTile = tileIds.wallRightEdge;
+        else if (openRight) wallTile = tileIds.wallLeftEdge;
+        drawTinyTile(ctx, wallTile, drawX, drawY, cell);
+      } else if (tile === 3) {
+        drawTinyTile(ctx, tileIds.stairsDown, drawX, drawY, cell);
+      } else if (tile === 4) {
+        drawTinyTile(ctx, tileIds.stairsUp, drawX, drawY, cell);
+      } else if (tile===7||tile===8||tile===9) {
+        ctx.fillStyle=tile===7?'#a46a32':tile===8?'#547b54':'#705c19';ctx.fillRect(drawX,drawY,cell,cell);ctx.fillStyle='#fff0b0';ctx.font=Math.max(9,cell*.25)+'px sans-serif';ctx.fillText(tile===9?'KEY':tile===7?'LOCK':'OPEN',drawX+2,drawY+cell*.6);
+      } else if (tile === 5 || tile === 6) {
+        ctx.fillStyle = tile === 6 ? '#0a5260' : '#080812';
+        ctx.fillRect(drawX, drawY, cell, cell);
+        ctx.strokeStyle = tile === 6 ? '#53f4ff' : '#9d36c5';
+        ctx.lineWidth = Math.max(2, cell / 12);
+        ctx.strokeRect(drawX + cell * 0.12, drawY + cell * 0.12, cell * 0.76, cell * 0.76);
+      } else {
+        drawTinyTile(ctx, tileIds.floor, drawX, drawY, cell);
+      }
+      ctx.strokeStyle = 'rgba(20, 25, 40, 0.35)';
+      ctx.strokeRect(drawX, drawY, cell, cell);
+    }
+  }
+
+  const drawActor = (x, y, tileId, tint) => {
+    if (x < minX || x > maxX || y < minY || y > maxY) return;
+    const drawX = originX + (x - minX) * cell;
+    const drawY = originY + (y - minY) * cell;
+    drawTinyTile(ctx, tileId, drawX, drawY, cell);
+    ctx.fillStyle = tint;
+    ctx.fillRect(drawX + cell * 0.12, drawY + cell * 0.08, cell * 0.76, Math.max(2, cell * 0.05));
+  };
+  drawActor(playerX, playerY, tinyCharacterTiles.player, '#55e6ff');
+  const enemyCount = wasm.enemy_count_roguelike();
+  for (let i = 0; i < enemyCount; i++) {
+    const data = wasm.enemy_data_roguelike(i);
+    if (data.length < 5) continue;
+    drawActor(data[0], data[1], tinyCharacterTiles.enemy[data[4]] || 72, data[5] === 1 ? '#ff5555' : '#ffb060');
+  }
+}
+document.body.classList.add('mode-3d');
+let playerModel = null;
+let playerVrm = null;
+let playerModelYOffset = 0;
+let vrmLoading = false;
+function setupPlayerModel(obj) {
+  const box = new THREE.Box3().setFromObject(obj);
+  const size = box.getSize(new THREE.Vector3());
+  const s = size.y > 0 ? 1.4 / size.y : 1;
+  obj.scale.setScalar(s);
+  playerModelYOffset = -box.min.y * s;
+  playerModel = obj;
+}
+function loadPlayerVrm() {
+  if (playerModel || vrmLoading || typeof THREE.GLTFLoader === 'undefined') return;
+  vrmLoading = true;
+  const loader = new THREE.GLTFLoader();
+  loader.load('./vrm/standard.vrm', (gltf) => {
+    if (window.THREE_VRM && THREE_VRM.VRM) {
+      THREE_VRM.VRM.from(gltf).then((vrm) => {
+        playerVrm = vrm;
+        setupPlayerModel(vrm.scene);
+      }).catch(() => {
+        setupPlayerModel(gltf.scene);
+      });
+    } else {
+      setupPlayerModel(gltf.scene);
+    }
+  }, undefined, (e) => {
+    console.warn('VRM load failed, keeping box player:', e);
+  });
+}
+function createIconSprite(imageId, size) {
+  const image = document.getElementById(imageId);
+  if (!image) return null;
+  const texture = new THREE.Texture(image);
+  texture.needsUpdate = true;
+  const material = new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+    depthWrite: false,
+  });
+  const sprite = new THREE.Sprite(material);
+  sprite.scale.set(size, size, 1);
+  return sprite;
+}
+function createIconPlane(imageId, size) {
+  const image = document.getElementById(imageId);
+  if (!image) return null;
+  const texture = new THREE.Texture(image);
+  texture.needsUpdate = true;
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  });
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(size, size), material);
+  return plane;
+}
+function createLabelSprite(drawLabel, width = 1.2, height = 0.24) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 48;
+  const ctx = canvas.getContext('2d');
+  drawLabel(ctx, canvas.width, canvas.height);
+  const texture = new THREE.CanvasTexture(canvas);
+  const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false });
+  const sprite = new THREE.Sprite(material);
+  sprite.scale.set(width, height, 1);
+  return sprite;
+}
+function disposeThreeObject(object) {
+  if (!object) return;
+  object.geometry?.dispose();
+  object.material?.map?.dispose();
+  object.material?.dispose();
+}
+function clearThreeObjects(objects) {
+  objects.forEach((object) => {
+    scene.remove(object);
+    disposeThreeObject(object);
+  });
+  objects.length = 0;
+}
+function init3d() {
+  const canvas3d = document.getElementById('game-canvas-3d');
+  const wrap = document.getElementById('canvas-wrap');
+  let width = wrap.offsetWidth || 1280;
+  let height = wrap.offsetHeight || 800;
+  canvas3d.setAttribute('width', width);
+  canvas3d.setAttribute('height', height);
+  renderer = new THREE.WebGLRenderer({ canvas: canvas3d, antialias: true });
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000008);
+  camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+  camera.position.set(0, 48, 72);
+  camera.lookAt(0, 0, 0);
+  renderer.setSize(width, height, false);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  const light = new THREE.DirectionalLight(0xffffff, 0.8);
+  light.position.set(50, 50, 50);
+  scene.add(light);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+  scene.add(ambientLight);
+  // Use the same readable character icon as the 2D view in the 3D scene.
+  window.addEventListener('resize', () => {
+    if (!renderer) return;
+    const newWidth = wrap.offsetWidth;
+    const newHeight = wrap.offsetHeight;
+    camera.aspect = newWidth / newHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(newWidth, newHeight);
+  });
+}
+function updateDungeon3d() {
+  if (!scene) init3d();
+  cubes.forEach(cube => {
+    scene.remove(cube);
+    cube.geometry.dispose();
+    cube.material.dispose();
+  });
+  cubes = [];
+  if (playerCube) {
+    scene.remove(playerCube);
+    playerCube.geometry.dispose();
+    playerCube.material.dispose();
+    playerCube = null;
+  }
+  enemies3d.forEach(e => {
+    scene.remove(e);
+    disposeThreeObject(e);
+  });
+  enemies3d = [];
+  clearThreeObjects(worldIconSprites);
+  clearThreeObjects(enemyHudSprites);
+  clearThreeObjects(damageSprites);
+  clearThreeObjects(attackEffectSprites);
+  clearThreeObjects(projectileSprites);
+  const mapWidth = wasm.map_width_roguelike();
+  const mapHeight = wasm.map_height_roguelike();
+  const playerX = wasm.player_x_roguelike();
+  const playerY = wasm.player_y_roguelike();
+  const mapData = wasm.map_data_roguelike();
+  const viewRadius = 18;
+  const minX = Math.max(0, playerX - viewRadius);
+  const maxX = Math.min(mapWidth - 1, playerX + viewRadius);
+  const minY = Math.max(0, playerY - viewRadius);
+  const maxY = Math.min(mapHeight - 1, playerY + viewRadius);
+  // The camera is on the +Y side, so reveal the floor tile immediately
+  // below a down staircase without changing any surrounding walls.
+  const downStairLowerFloors = new Set();
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      if (mapData[y * mapWidth + x] === 3 && y + 1 < mapHeight) {
+        downStairLowerFloors.add(`${x},${y + 1}`);
+      }
+    }
+  }
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      const idx = y * mapWidth + x;
+      const tile = mapData[idx];
+      let color = 0x555577;
+      let h = 0.2;
+      if (tile === 1) { color = 0x333344; h = 2.0; }
+      else if (tile === 2) { color = 0x446688; h = 0.2; }
+      else if (tile === 3 || tile === 4) { color = 0x446688; h = 0.2; }
+      else if(tile===7){color=0xa46a32;h=1.6;}
+      else if(tile===8){color=0x547b54;h=0.2;}
+      else if(tile===9){color=0x446688;h=0.2;}
+      if (tile === 5 || tile === 6) {
+        const holeColor = tile === 6 ? 0x001820 : 0x020205;
+        const shaft = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.48, 0.28, 0.9, 24, 1, true),
+          new THREE.MeshBasicMaterial({
+            color: tile === 6 ? 0x00303a : 0x13001b,
+            side: THREE.DoubleSide,
+          })
+        );
+        shaft.position.set(x, -0.35, y);
+        scene.add(shaft);
+        cubes.push(shaft);
+
+        const holeBottom = new THREE.Mesh(
+          new THREE.CircleGeometry(0.28, 24),
+          new THREE.MeshBasicMaterial({ color: holeColor, side: THREE.DoubleSide })
+        );
+        holeBottom.rotation.x = -Math.PI / 2;
+        holeBottom.position.set(x, -0.8, y);
+        scene.add(holeBottom);
+        cubes.push(holeBottom);
+
+        const holeEdge = new THREE.Mesh(
+          new THREE.TorusGeometry(0.46, 0.035, 8, 24),
+          new THREE.MeshBasicMaterial({ color: tile === 6 ? 0x00ffff : 0x7828aa })
+        );
+        holeEdge.rotation.x = Math.PI / 2;
+        holeEdge.position.set(x, 0.03, y);
+        scene.add(holeEdge);
+        cubes.push(holeEdge);
+
+        if (tile === 6) {
+          const warpLabel = createLabelSprite((ctx, width, height) => {
+            ctx.font = 'bold 20px monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = 'rgba(0,0,0,0.9)';
+            ctx.strokeText('WARP', width / 2, height / 2);
+            ctx.fillStyle = '#00ffff';
+            ctx.fillText('WARP', width / 2, height / 2);
+          }, 1.35, 0.3);
+          warpLabel.position.set(x, 0.06, y);
+          warpLabel.material.depthTest = false;
+          scene.add(warpLabel);
+          worldIconSprites.push(warpLabel);
+        }
+        continue;
+      }
+      const doorAlongX=tile===7&&x>0&&mapData[y*mapWidth+x-1]!==1;
+      const geom = new THREE.BoxGeometry(tile===7?(doorAlongX?0.18:1):1, h, tile===7?(doorAlongX?1:0.18):1);
+      const foregroundWall = tile === 1 && y > playerY;
+      const isDownStairLowerFloor = tile === 2 && downStairLowerFloors.has(`${x},${y}`);
+      const transparentFloor = isDownStairLowerFloor;
+      const mat = new THREE.MeshLambertMaterial({
+        color,
+        transparent: foregroundWall || transparentFloor,
+        opacity: foregroundWall ? 0.24 : transparentFloor ? 0.12 : 1,
+        depthWrite: !(foregroundWall || transparentFloor),
+      });
+      const cube = new THREE.Mesh(geom, mat);
+      cube.position.set(x, h / 2, y);
+      scene.add(cube);
+      cubes.push(cube);
+
+      if(tile===7||tile===8||tile===9){
+        const word=tile===7?'LOCK':tile===8?'OPEN':'KEY';
+        const label=createLabelSprite((ctx,w,h)=>{ctx.font='bold 22px monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#ffda70';ctx.fillText(word,w/2,h/2);},0.85,0.3);
+        label.position.set(x,tile===7?1.8:0.5,y);scene.add(label);worldIconSprites.push(label);
+        if(tile===9){const key=new THREE.Mesh(new THREE.TorusGeometry(0.16,0.045,5,12),new THREE.MeshBasicMaterial({color:0xffd44d}));key.position.set(x,0.65,y);scene.add(key);cubes.push(key);}
+      }
+      if (tile === 3 || tile === 4) {
+        const stairSprite = createIconSprite('stairs-icon', 0.9);
+        if (stairSprite) {
+          stairSprite.position.set(x, tile === 3 ? 0.22 : 0.58, y);
+          scene.add(stairSprite);
+          worldIconSprites.push(stairSprite);
+        }
+
+        const stairLabel = tile === 3 ? 'DOWN' : 'UP';
+        const stairColor = tile === 3 ? '#dddd00' : '#00dddd';
+        const labelSprite = createLabelSprite((ctx, width, height) => {
+          ctx.font = 'bold 20px monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.lineWidth = 5;
+          ctx.strokeStyle = 'rgba(0,0,0,0.9)';
+          ctx.strokeText(stairLabel, width / 2, height / 2);
+          ctx.fillStyle = stairColor;
+          ctx.fillText(stairLabel, width / 2, height / 2);
+        }, 1.35, 0.3);
+        labelSprite.position.set(x, 0.06, y);
+        labelSprite.material.depthTest = false;
+        scene.add(labelSprite);
+        worldIconSprites.push(labelSprite);
+      }
+    }
+  }
+  if (playerModel) {
+    if (playerModel.parent !== scene) {
+      if (playerModel.parent) playerModel.parent.remove(playerModel);
+      scene.add(playerModel);
+    }
+    playerModel.position.set(playerX, 0.2 + playerModelYOffset, playerY);
+    const dir = wasm.player_direction_roguelike();
+    const dirToRot = { 0: Math.PI, 1: -Math.PI / 2, 2: Math.PI / 2, 3: 0 };
+    playerModel.rotation.y = dirToRot[dir] ?? 0;
+    if (playerVrm) playerVrm.update(1 / 60);
+  } else {
+    playerCube = createIconPlane('player-icon', 1.5);
+    if (!playerCube) {
+      const playerGeom = new THREE.BoxGeometry(0.7, 1.4, 0.7);
+      const playerMat = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
+      playerCube = new THREE.Mesh(playerGeom, playerMat);
+    }
+    playerCube.position.set(playerX, 0.9, playerY);
+    const playerDir = wasm.player_direction_roguelike();
+    if (playerCube.material?.color) {
+      const palette = typeof wasm.game_palette_roguelike === 'function' ? wasm.game_palette_roguelike() : 0;
+      playerCube.material.color.set(palette === 2 ? 0xff4050 : palette === 1 ? 0x40c8ff : 0xffffff);
+    }
+    playerCube.scale.x = playerDir === 1 ? -1 : 1;
+    playerCube.scale.y = 1;
+    const downRotation = ui.getDownRotation();
+    playerCube.rotation.x = playerDir === 3 ? downRotation.x * Math.PI / 180 : 0;
+    playerCube.rotation.y = playerDir === 3
+      ? downRotation.y * Math.PI / 180
+      : playerDir === 0
+        ? Math.PI - Math.PI / 9
+      : playerDir === 2
+        ? Math.PI / 9
+        : 0;
+    playerCube.rotation.z = playerDir === 3 ? downRotation.z * Math.PI / 180 : 0;
+    scene.add(playerCube);
+  }
+  const enemyCount = wasm.enemy_count_roguelike();
+  for (let i = 0; i < enemyCount; i++) {
+    const data = wasm.enemy_data_roguelike(i);
+    if (data.length < 3) continue;
+    const ex = data[0];
+    const ey = data[1];
+    const isBoss = data[5] === 1;
+    if (ex < minX || ex > maxX || ey < minY || ey > maxY) continue;
+    const enemyCube = createIconSprite(`enemy-${data[4]}`, isBoss ? 2.5 : 1.25)
+      || new THREE.Mesh(
+        new THREE.BoxGeometry(0.6, 1.1, 0.6),
+        new THREE.MeshLambertMaterial({ color: 0xff4444 })
+      );
+    enemyCube.position.set(ex, 0.75, ey);
+    const enemyTintPalette = [0x66ddff, 0x66ff88, 0x88aaff, 0xffaa55, 0xff77cc, 0xcc88ff];
+    if (enemyCube.material?.color) {
+      const palette = typeof wasm.game_palette_roguelike === 'function' ? wasm.game_palette_roguelike() : 0;
+      const redPalette = [0xff5555, 0xff8844, 0xff6688, 0xff3333, 0xff77aa, 0xcc4466];
+      const neutralPalette = [0x9fe6ff, 0x9fffaa, 0xb0bbff, 0xffc477, 0xff99dd, 0xd0aaff];
+      enemyCube.material.color.set(isBoss
+        ? (palette === 2 ? 0xff3333 : palette === 1 ? 0x4488ff : 0xffcc55)
+        : (palette === 2 ? redPalette[data[4] % redPalette.length]
+          : palette === 1 ? enemyTintPalette[data[4] % enemyTintPalette.length]
+          : neutralPalette[data[4] % neutralPalette.length]));
+    }
+    scene.add(enemyCube);
+    enemies3d.push(enemyCube);
+
+    const enemyNameFallbacks = [
+      'Young Goblin', 'Goblin', 'Hobgoblin',
+      'Young Bat', 'Bat', 'Giant Bat',
+      'Skeleton', 'Skeleton Warrior', 'Skeleton Knight',
+      'Young Spider', 'Spider', 'Giant Spider',
+      'Young Troll', 'Troll', 'Troll King',
+      'Zombie', 'Zombie Warrior', 'Zombie Lord',
+      'Spirit', 'Ghost', 'Phantom',
+      'Mummy', 'Mummy Priest', 'Pharaoh',
+      'Young Ogre', 'Ogre', 'Ogre Warlord',
+      'Young Dragon', 'Dragon', 'King Dragon',
+    ];
+    const enemyNameFromWasm = typeof wasm.enemy_name_roguelike === 'function'
+      ? String(wasm.enemy_name_roguelike(i) || '')
+      : '';
+    const enemyName = enemyNameFromWasm || enemyNameFallbacks[data[4]] || 'Enemy';
+    if (enemyName) {
+      const nameSprite = createLabelSprite((ctx, width, height) => {
+        ctx.font = 'bold 30px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = 'rgba(0,0,0,0.9)';
+        ctx.strokeText(enemyName, width / 2, height / 2);
+        ctx.fillStyle = isBoss ? '#ff5555' : '#aaf';
+        ctx.fillText(enemyName, width / 2, height / 2);
+      }, 4.2, 0.5);
+      nameSprite.position.set(ex, isBoss ? 3.0 : 2.45, ey);
+      nameSprite.material.depthTest = false;
+      nameSprite.material.depthWrite = false;
+      nameSprite.material.opacity = 1;
+      nameSprite.renderOrder = 20;
+      nameSprite.frustumCulled = false;
+      scene.add(nameSprite);
+      enemyHudSprites.push(nameSprite);
+    }
+
+    const hpSprite = createLabelSprite((ctx, width, height) => {
+      ctx.font = 'bold 28px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = 'rgba(0,0,0,0.9)';
+      ctx.strokeText(`HP:${data[2]}`, width / 2, height / 2);
+      ctx.fillStyle = '#fff';
+      ctx.fillText(`HP:${data[2]}`, width / 2, height / 2);
+    }, 2.5, 0.42);
+    hpSprite.position.set(ex, 2.02, ey);
+    hpSprite.material.depthTest = false;
+    hpSprite.material.depthWrite = false;
+    hpSprite.material.opacity = 1;
+    hpSprite.renderOrder = 21;
+    hpSprite.frustumCulled = false;
+    scene.add(hpSprite);
+    enemyHudSprites.push(hpSprite);
+  }
+
+  const damageData = typeof wasm.damage_number_data_roguelike === 'function'
+    ? wasm.damage_number_data_roguelike()
+    : [];
+  for (let i = 0; i + 4 < damageData.length; i += 5) {
+    const ttlRatio = damageData[i + 4] > 0 ? damageData[i + 3] / damageData[i + 4] : 0;
+    const damageSprite = createLabelSprite((ctx, width, height) => {
+      ctx.font = 'bold 34px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = 'rgba(0,0,0,0.9)';
+      ctx.strokeText(`-${damageData[i + 2]}`, width / 2, height / 2);
+      ctx.fillStyle = '#ff6666';
+      ctx.fillText(`-${damageData[i + 2]}`, width / 2, height / 2);
+    }, 1.25, 0.35);
+    damageSprite.position.set(damageData[i], 1.8 + (1 - ttlRatio) * 0.8, damageData[i + 1]);
+    damageSprite.material.opacity = Math.max(0, ttlRatio);
+    scene.add(damageSprite);
+    damageSprites.push(damageSprite);
+  }
+  const effectData = typeof wasm.attack_effect_data_roguelike === 'function'
+    ? wasm.attack_effect_data_roguelike()
+    : [];
+  for (let i = 0; i + 3 < effectData.length; i += 4) {
+    const ttlRatio = effectData[i + 3] > 0 ? effectData[i + 2] / effectData[i + 3] : 0;
+    const effectSprite = createLabelSprite((ctx, width, height) => {
+      ctx.strokeStyle = '#0ff';
+      ctx.lineWidth = 14;
+      ctx.shadowBlur = 28;
+      ctx.shadowColor = '#0ff';
+      ctx.beginPath();
+      ctx.arc(width / 2, height / 2, height * 0.42, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(0,255,255,0.25)';
+      ctx.beginPath();
+      ctx.arc(width / 2, height / 2, height * 0.30, 0, Math.PI * 2);
+      ctx.fill();
+    }, 2.8, 2.8);
+    effectSprite.position.set(effectData[i], 0.12, effectData[i + 1]);
+    effectSprite.material.opacity = Math.max(0, ttlRatio);
+    scene.add(effectSprite);
+    attackEffectSprites.push(effectSprite);
+  }
+  const projectileData = typeof wasm.projectile_data_roguelike === 'function'
+    ? wasm.projectile_data_roguelike()
+    : [];
+  for (let i = 0; i + 5 < projectileData.length; i += 6) {
+    const fromX = projectileData[i] / 100;
+    const fromY = projectileData[i + 1] / 100;
+    const toX = projectileData[i + 2] / 100;
+    const toY = projectileData[i + 3] / 100;
+    const progress = projectileData[i + 4] / 1000;
+    const type = projectileData[i + 5];
+    const color = type === 2 ? '#ffe08a' : type === 3 ? '#ff4050' : '#b56cff';
+    const projectileCanvas = document.createElement('canvas');
+    projectileCanvas.width = 96;
+    projectileCanvas.height = 96;
+    const projectileContext = projectileCanvas.getContext('2d');
+    projectileContext.clearRect(0, 0, 96, 96);
+    projectileContext.shadowColor = color;
+    projectileContext.shadowBlur = type === 2 ? 12 : 24;
+    projectileContext.strokeStyle = color;
+    projectileContext.fillStyle = color;
+    if (type === 2) {
+      const angle = Math.atan2(toY - fromY, toX - fromX);
+      projectileContext.translate(48, 48);
+      projectileContext.rotate(angle);
+      projectileContext.lineWidth = 6;
+      projectileContext.beginPath();
+      projectileContext.moveTo(-30, 0);
+      projectileContext.lineTo(24, 0);
+      projectileContext.stroke();
+      projectileContext.beginPath();
+      projectileContext.moveTo(24, 0);
+      projectileContext.lineTo(8, -12);
+      projectileContext.lineTo(8, 12);
+      projectileContext.closePath();
+      projectileContext.fill();
+      projectileContext.strokeStyle = '#fff4c2';
+      projectileContext.lineWidth = 2;
+      projectileContext.beginPath();
+      projectileContext.moveTo(-30, 0);
+      projectileContext.lineTo(24, 0);
+      projectileContext.stroke();
+    } else {
+      projectileContext.globalAlpha = 0.28;
+      projectileContext.beginPath();
+      projectileContext.arc(48, 48, 30, 0, Math.PI * 2);
+      projectileContext.fill();
+      projectileContext.globalAlpha = 1;
+      projectileContext.beginPath();
+      projectileContext.arc(48, 48, 14, 0, Math.PI * 2);
+      projectileContext.fill();
+      projectileContext.strokeStyle = '#fff';
+      projectileContext.lineWidth = 3;
+      projectileContext.stroke();
+    }
+    const projectileTexture = new THREE.CanvasTexture(projectileCanvas);
+    const projectileSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: projectileTexture,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+    }));
+    projectileSprite.scale.set(type === 2 ? 1.15 : 1.0, type === 2 ? 1.15 : 1.0, 1);
+    projectileSprite.position.set(
+      fromX + (toX - fromX) * progress,
+      1.25,
+      fromY + (toY - fromY) * progress,
+    );
+    projectileSprite.renderOrder = 30;
+    scene.add(projectileSprite);
+    projectileSprites.push(projectileSprite);
+  }
+  camera.position.set(playerX, 12, playerY + 10);
+  camera.lookAt(playerX, 0, playerY - 2);
+}
+let init3dAttempted = false;
+function render3d() {
+  if (!renderer) {
+    if (init3dAttempted) return;
+    init3dAttempted = true;
+    init3d();
+  }
+  if (!renderer) return;
+  const wrap = document.getElementById('canvas-wrap');
+  const w = wrap.offsetWidth || 1280;
+  const h = wrap.offsetHeight || 800;
+  const size = new THREE.Vector2();
+  renderer.getSize(size);
+  if (size.x !== w || size.y !== h) {
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  const hud = document.getElementById('game-3d-hud');
+  if (hud) {
+    hud.style.display = 'block';
+    hud.innerHTML = `<div style="color:#ff6666">HP ${wasm.hp_roguelike()}/${wasm.max_hp_roguelike()}</div><div style="color:#6688ff">MP ${wasm.mp_roguelike()}/${wasm.max_mp_roguelike()}</div>`;
+  }
+  updateDungeon3d();
+  renderer.render(scene, camera);
+}
+function toggleViewMode() {
+  if (isTinyMode) return;
+  is3dMode = !is3dMode;
+  const canvas2d = document.getElementById('game-canvas');
+  const canvas3d = document.getElementById('game-canvas-3d');
+  const btn = document.getElementById('view-toggle');
+  if (is3dMode) {
+    document.body.classList.add('mode-3d');
+    canvas2d.style.display = 'none';
+    canvas3d.style.display = 'block';
+    btn.textContent = '2D';
+    render3d();
+  } else {
+    document.body.classList.remove('mode-3d');
+    document.getElementById('game-3d-hud').style.display = 'none';
+    canvas2d.style.display = 'block';
+    canvas3d.style.display = 'none';
+    btn.textContent = '3D';
+  }
+}
+function toggleTinyMode() {
+  const canvas2d = document.getElementById('game-canvas');
+  const canvas3d = document.getElementById('game-canvas-3d');
+  const canvasTiny = document.getElementById('game-canvas-tiny');
+  const viewButton = document.getElementById('view-toggle');
+  const tinyButton = document.getElementById('tiny-toggle');
+  isTinyMode = !isTinyMode;
+  if (isTinyMode) {
+    canvas2d.style.display = 'none';
+    canvas3d.style.display = 'none';
+    canvasTiny.style.display = 'block';
+    viewButton.style.display = 'none';
+    tinyButton.textContent = 'STANDARD';
+    document.body.classList.add('mode-tiny');
+  } else {
+    canvasTiny.style.display = 'none';
+    viewButton.style.display = 'block';
+    tinyButton.textContent = 'TINY MODE';
+    document.body.classList.remove('mode-tiny');
+    if (is3dMode) {
+      canvas3d.style.display = 'block';
+      render3d();
+    } else {
+      canvas2d.style.display = 'block';
+      renderCanvas();
+    }
+  }
+}
+document.getElementById('view-toggle').addEventListener('click', toggleViewMode);
+document.getElementById('tiny-toggle').addEventListener('click', toggleTinyMode);
+document.getElementById('no-damage-quick-toggle').addEventListener('click', () => {
+  if (!initialized) return;
+  const enabled = !wasm.no_damage_mode_roguelike();
+  wasm.set_no_damage_mode_roguelike(enabled);
+});
+document.getElementById('ui-toggle-btn').addEventListener('click', () => {
+  const uiUpper = document.getElementById('ui-upper');
+  const canvasWrap = document.getElementById('canvas-wrap');
+  const btn = document.getElementById('ui-toggle-btn');
+  if (uiUpper.classList.contains('hidden')) {
+    uiUpper.classList.remove('hidden');
+    canvasWrap.classList.remove('expanded');
+    btn.textContent = '▼ Hide UI';
+  } else {
+    uiUpper.classList.add('hidden');
+    canvasWrap.classList.add('expanded');
+    btn.textContent = '▲ Show UI';
+  }
+  setTimeout(() => {
+    if (renderer) {
+      const wrap = document.getElementById('canvas-wrap');
+      const width = wrap.offsetWidth;
+      const height = wrap.offsetHeight;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    }
+  }, 300);
+});
+function renderCanvas() {
+  const wrap = document.getElementById('canvas-wrap');
+  const canvas = document.getElementById('game-canvas');
+  const width = Math.max(1, wrap.clientWidth);
+  const height = Math.max(1, wrap.clientHeight);
+  const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.style.width = `${width}px`;
+  canvas.style.height = `${height}px`;
+  wasm.render_roguelike('game-canvas', Math.round(width * pixelRatio), Math.round(height * pixelRatio));
+}
+
+let importedScene = null;
+function activateMindzjScene(doc) {
+  const runtime=toRuntime(doc);
+  wasm.load_mindzj_scene(JSON.stringify(runtime));
+  importedScene=doc;
+  partyBattleActive=false;
+  document.getElementById('title-screen').style.display='none';
+  document.getElementById('town-screen').classList.remove('active');
+  document.getElementById('game-over').classList.remove('active','victory');
+  document.getElementById('game-over').style.display='none';
+  for(const id of ['mobile-action-pad','mobile-action-buttons','movement-joystick','game-top-info']) document.getElementById(id).style.display='flex';
+  for(const id of ['game-info-panel','attack-button','jump-button','weapon-prev-button','weapon-next-button']) document.getElementById(id).style.display='block';
+  document.getElementById('nav-bar').style.display='flex';
+  document.getElementById('mindzj-status').textContent=doc.title+' — '+doc.width+'×'+doc.height+' / 2D・3D共通';
+  document.getElementById('mindzj-edit').href='index.html#scene='+encodeURIComponent(JSON.stringify(doc));
+}
+function updateMindzjNote(){
+  if(!importedScene)return;
+  const x=wasm.player_x_roguelike(),y=wasm.player_y_roguelike();
+  const floor=getFloor(importedScene,wasm.depth_roguelike()-1);
+  document.getElementById('mindzj-status').textContent=importedScene.title+' / F'+wasm.depth_roguelike()+' / 鍵 '+wasm.keys_mindzj()+'個';
+  const notes=floor.entities.filter(e=>e.kind==='note'&&Math.abs(e.x-x)+Math.abs(e.y-y)<=1);
+  const panel=document.getElementById('mindzj-note');
+  panel.hidden=!notes.length;
+  panel.textContent=notes.map(e=>'▤ '+e.text).join('\n');
+}
+async function initializeMindzjImport() {
+  const status=document.getElementById('mindzj-status');
+  document.getElementById('mindzj-load').onclick=()=>document.getElementById('mindzj-file').click();
+  document.getElementById('mindzj-file').onchange=async event=>{
+    const file=event.target.files[0];event.target.value='';if(!file)return;
+    try{if(file.size>2_000_000)throw Error('2MB以内のファイルを選んでください。');activateMindzjScene(readScene(await file.text()));}
+    catch(error){status.textContent=error.message;}
+  };
+  document.getElementById('mindzj-retry').onclick=()=>{if(importedScene)activateMindzjScene(importedScene);};
+  window.mindzjImportScene=activateMindzjScene;
+  try {
+    let text;
+    if(location.hash.startsWith('#scene='))text=decodeURIComponent(location.hash.slice(7));
+    else {const response=await fetch('./sample.md');if(!response.ok)throw Error('サンプルを読み込めませんでした。');text=await response.text();}
+    activateMindzjScene(readScene(text));
+  } catch(error){status.textContent=error.message;}
+}
+
+window.selectEquipmentSlot = selectEquipmentSlot;
+window.updateEquipmentTab = updateEquipmentTab;
+window.updateEquipmentDisplay = updateEquipmentDisplay;
+window.updateItemsDisplay = updateItemsDisplay;
+window.useHealthPotion = useHealthPotion;
+window.drawDungeonMap = drawDungeonMap;
+window.flashHint = flashHint;
+start();
+</script>
+</body>
+</html>
