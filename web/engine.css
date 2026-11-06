@@ -1,30 +1,9 @@
-/* engine.css — RustGames エンジン共通スタイル
- * 標準フォント: Gen Interface JP (OFL ライセンス)
- * https://github.com/yamatoiizuka/gen-interface-jp
- */
-
+/* DenkiChip by hicc — SIL Open Font License 1.1. See licenses/DenkiChip-OFL.txt. */
 @font-face {
-  font-family: 'GenInterfaceJP';
-  src: url('./fonts/GenInterfaceJP-Light.ttf') format('truetype');
-  font-weight: 300;
+  font-family: DenkiChip;
+  src: url('./fonts/x8y12pxDenkiChip.woff2') format('woff2');
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
-@font-face {
-  font-family: 'GenInterfaceJP';
-  src: url('./fonts/GenInterfaceJP-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'GenInterfaceJP';
-  src: url('./fonts/GenInterfaceJP-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-:root {
-  --engine-font: 'GenInterfaceJP', 'Courier New', monospace;
-}
+:root { --engine-font: DenkiChip, monospace; }

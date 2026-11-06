@@ -18,10 +18,14 @@ Provided under Creative Commons Attribution 3.0, except individually designated 
 Author list and upstream notice: `web/licenses/Game-Icons.txt`.
 https://creativecommons.org/licenses/by/3.0/
 
-## Gen Interface JP
+## DenkiChip
 
-https://github.com/yamatoiizuka/gen-interface-jp
-The bundled fonts retain their embedded SIL Open Font License 1.1 notice, including Adobe Source and Inter copyright information. Font notices are in `web/licenses/GenInterfaceJP-Embedded-Notices.txt`, with OFL texts in the Noto and Inter notice files. The font project's MIT license for its own project code is also retained separately and does not replace the font license.
+x8y12pxDenkiChip / でんきチップ by hicc (患者長ひっく).
+https://github.com/hicchicc/x8y12pxDenkiChip
+
+The unmodified WOFF2 font is bundled from commit `a9c01147fb823e2175632585acef4b32222a0679` (v1.100), under SIL Open Font License 1.1. Copyright and license: `web/licenses/DenkiChip-OFL.txt`, authors: `web/licenses/DenkiChip-AUTHORS.txt`.
+
+The previous release used Gen Interface JP; its original notices are retained in the repository for reference.
 
 ## RPG Awesome
 

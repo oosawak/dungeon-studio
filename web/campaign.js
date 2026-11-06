@@ -1,4 +1,4 @@
-import {FORMAT,generateScene,validateScene} from './scene-format.js';
+import {FORMAT,generateScene,validateScene} from './scene-format.js?v=20261106-denki1';
 const occupied=(f,x,y)=>f.entities.some(e=>e.x===x&&e.y===y);
 export function placeEntrance(scene,target,label,style='gate'){
  const spawn=scene.entities.find(e=>e.kind==='spawn');

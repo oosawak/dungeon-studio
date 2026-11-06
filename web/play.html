@@ -13,7 +13,7 @@ html, body {
   width: 100%;
   height: 100%;
   background: #000;
-  font-family: 'GenInterfaceJP', monospace;
+  font-family: 'DenkiChip', monospace;
   overflow: hidden;
 }
 #container {
@@ -53,7 +53,7 @@ html, body {
   color: #0ff;
   cursor: pointer;
   border-radius: 3px;
-  font-family: monospace;
+  font-family: DenkiChip, monospace;
   font-size: 0.75em;
   display: none;
   transition: top 0.3s ease;
@@ -81,7 +81,7 @@ html, body {
   border: 1px solid rgba(0, 200, 255, 0.65);
   border-radius: 7px;
   color: #0ff;
-  font-family: monospace;
+  font-family: DenkiChip, monospace;
   cursor: pointer;
   touch-action: none;
 }
@@ -112,7 +112,7 @@ html, body {
   border: 2px solid rgba(0, 200, 255, 0.7);
   border-radius: 7px;
   color: #0ff;
-  font-family: monospace;
+  font-family: DenkiChip, monospace;
   font-size: 15px;
   font-weight: bold;
   cursor: pointer;
@@ -244,7 +244,7 @@ html, body {
   background: transparent;
   border: 2px solid #0ff;
   color: #0ff;
-  font-family: 'GenInterfaceJP', monospace;
+  font-family: 'DenkiChip', monospace;
   font-size: 1.1em;
   cursor: pointer;
   text-shadow: 0 0 8px #0ff;
@@ -432,7 +432,7 @@ html, body {
 .party-cell.selected { border-color: #ffd47a; box-shadow: 0 0 12px rgba(255,212,122,0.8); }
 .party-cell.enemy { border-color: rgba(255,95,95,0.35); }
 .party-cell.enemy img { filter: sepia(0.6) saturate(2.2) hue-rotate(300deg) drop-shadow(0 0 4px #f55); }
-.party-cell .party-hp { position: absolute; right: 2px; bottom: 1px; color: #9fefad; font: 9px monospace; }
+.party-cell .party-hp { position: absolute; right: 2px; bottom: 1px; color: #9fefad; font: 9px DenkiChip, monospace; }
 .party-divider { color: #ffd47a; text-align: center; font-size: 1.4em; }
 .party-command-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; width: min(720px, 96vw); }
 .party-command { min-width: 105px; padding: 9px 12px; color: #ffe9b7; background: rgba(30,33,54,0.9); border: 1px solid rgba(255,190,100,0.55); border-radius: 4px; font-family: inherit; cursor: pointer; }
@@ -482,7 +482,7 @@ html, body {
   max-width: 70px;
   overflow: hidden;
   color: #66ccff;
-  font: 9px monospace;
+  font: 9px DenkiChip, monospace;
   line-height: 1;
   text-align: center;
   text-overflow: ellipsis;
@@ -519,7 +519,7 @@ html, body {
   background: transparent;
   border: 2px solid #f44;
   color: #f44;
-  font-family: 'GenInterfaceJP', monospace;
+  font-family: 'DenkiChip', monospace;
   font-size: 1.1em;
   cursor: pointer;
   text-shadow: 0 0 8px #f44;
@@ -652,7 +652,7 @@ html, body {
   border: none;
   background: transparent;
   color: rgba(0, 200, 255, 0.6);
-  font-family: 'GenInterfaceJP', monospace;
+  font-family: 'DenkiChip', monospace;
   font-size: 0.7em;
   cursor: pointer;
   text-shadow: 0 0 4px rgba(0, 200, 255, 0.3);
@@ -914,7 +914,7 @@ body.controls-swapped #movement-joystick {
   border: 1px solid rgba(0, 200, 255, 0.7);
   border-radius: 4px;
   color: #0ff;
-  font-family: monospace;
+  font-family: DenkiChip, monospace;
   cursor: pointer;
 }
 #message-log { z-index: 40; }
@@ -975,7 +975,7 @@ body.controls-swapped #movement-joystick {
   border: 1px solid rgba(0, 200, 255, 0.6);
   border-radius: 4px;
   padding: 12px;
-  font-family: monospace;
+  font-family: DenkiChip, monospace;
   font-size: 0.8em;
   color: #0ff;
   display: none;
@@ -1093,7 +1093,7 @@ body.controls-swapped #movement-joystick {
 </head>
 <body>
 <div id="mindzj-import-bar"><a href="index.html" id="mindzj-edit">← マップ編集</a><a href="credits.html">Credits</a><button id="mindzj-load">Markdownを開く</button><button id="mindzj-enter" hidden>入る [E]</button><button id="mindzj-return" hidden>前の場所へ戻る</button><button id="mindzj-retry">シーンを再開</button><span id="mindzj-status" role="status">シーン読込待ち</span><span id="mindzj-note" hidden></span><input id="mindzj-file" type="file" accept=".md,.markdown,.json" hidden></div>
-<style>#mindzj-import-bar{position:fixed;bottom:8px;left:8px;right:8px;z-index:2500;display:flex;gap:8px;align-items:center;padding:8px;background:#102430f2;border:1px solid #37616d;border-radius:8px;font:12px sans-serif}#mindzj-import-bar a{color:#b9e8df}#mindzj-import-bar button{font-family:GenInterfaceJP,sans-serif;cursor:pointer;padding:6px 10px;color:#e6f8ff;background:#264956;border:1px solid #59818a;border-radius:4px}#mindzj-import-bar{font-family:GenInterfaceJP,sans-serif;flex-wrap:wrap}#mindzj-note{flex-basis:100%;max-height:70px;overflow:auto;white-space:pre-wrap;color:#f2d9a7}#tiny-toggle{right:186px!important}#no-damage-quick-toggle{right:66px!important}#mindzj-status{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}</style>
+<style>#mindzj-import-bar{position:fixed;bottom:8px;left:8px;right:8px;z-index:2500;display:flex;gap:8px;align-items:center;padding:8px;background:#102430f2;border:1px solid #37616d;border-radius:8px;font:12px DenkiChip, sans-serif}#mindzj-import-bar a{color:#b9e8df}#mindzj-import-bar button{font-family:DenkiChip,sans-serif;cursor:pointer;padding:6px 10px;color:#e6f8ff;background:#264956;border:1px solid #59818a;border-radius:4px}#mindzj-import-bar{font-family:DenkiChip,sans-serif;flex-wrap:wrap}#mindzj-note{flex-basis:100%;max-height:70px;overflow:auto;white-space:pre-wrap;color:#f2d9a7}#tiny-toggle{right:186px!important}#no-damage-quick-toggle{right:66px!important}#mindzj-status{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}</style>
 
 <div style="position: absolute; left: -9999px; font-family: RPGAwesome; font-size: 1px;">
   <span class="ra ra-player"></span>
@@ -1256,11 +1256,11 @@ body.controls-swapped #movement-joystick {
   <canvas id="game-canvas" style="display: none; width: 100%; height: 100%; max-width: 100%;"></canvas>
   <canvas id="game-canvas-3d" style="display: block; width: 100%; height: 100%; max-width: 100%;"></canvas>
   <canvas id="game-canvas-tiny" style="display: none; width: 100%; height: 100%; max-width: 100%;"></canvas>
-  <button id="view-toggle" style="position: absolute; top: 10px; right: 10px; z-index: 30; padding: 8px 16px; background: rgba(0,200,255,0.2); border: 1px solid #0ff; color: #0ff; cursor: pointer; border-radius: 4px; font-family: monospace; font-size: 0.8em;">2D</button>
-  <button id="tiny-toggle" style="position: absolute; top: 10px; right: 142px; z-index: 30; padding: 8px 10px; background: rgba(255,170,80,0.2); border: 1px solid #ffaa50; color: #ffc080; cursor: pointer; border-radius: 4px; font-family: monospace; font-size: 0.7em;">TINY MODE</button>
-  <button id="no-damage-quick-toggle" style="position: absolute; top: 10px; right: 78px; z-index: 30; padding: 8px 10px; background: rgba(0,200,255,0.2); border: 1px solid #0ff; color: #0ff; cursor: pointer; border-radius: 4px; font-family: monospace; font-size: 0.7em;">NO DAMAGE: ON</button>
-  <button id="ui-toggle-btn" style="position: absolute; top: 50px; right: 10px; z-index: 30; padding: 6px 12px; background: rgba(0,200,255,0.2); border: 1px solid #0ff; color: #0ff; cursor: pointer; border-radius: 4px; font-family: monospace; font-size: 0.8em; display: none;">▼ Hide UI</button>
-  <div id="game-3d-hud" style="display: none; position: absolute; top: 10px; left: 10px; z-index: 30; min-width: 150px; padding: 7px 9px; border: 1px solid rgba(0,200,255,0.7); border-radius: 4px; background: rgba(0,10,20,0.82); color: #0ff; font: 12px monospace; line-height: 1.5; text-shadow: 0 0 5px #0ff;"></div>
+  <button id="view-toggle" style="position: absolute; top: 10px; right: 10px; z-index: 30; padding: 8px 16px; background: rgba(0,200,255,0.2); border: 1px solid #0ff; color: #0ff; cursor: pointer; border-radius: 4px; font-family: DenkiChip, monospace; font-size: 0.8em;">2D</button>
+  <button id="tiny-toggle" style="position: absolute; top: 10px; right: 142px; z-index: 30; padding: 8px 10px; background: rgba(255,170,80,0.2); border: 1px solid #ffaa50; color: #ffc080; cursor: pointer; border-radius: 4px; font-family: DenkiChip, monospace; font-size: 0.7em;">TINY MODE</button>
+  <button id="no-damage-quick-toggle" style="position: absolute; top: 10px; right: 78px; z-index: 30; padding: 8px 10px; background: rgba(0,200,255,0.2); border: 1px solid #0ff; color: #0ff; cursor: pointer; border-radius: 4px; font-family: DenkiChip, monospace; font-size: 0.7em;">NO DAMAGE: ON</button>
+  <button id="ui-toggle-btn" style="position: absolute; top: 50px; right: 10px; z-index: 30; padding: 6px 12px; background: rgba(0,200,255,0.2); border: 1px solid #0ff; color: #0ff; cursor: pointer; border-radius: 4px; font-family: DenkiChip, monospace; font-size: 0.8em; display: none;">▼ Hide UI</button>
+  <div id="game-3d-hud" style="display: none; position: absolute; top: 10px; left: 10px; z-index: 30; min-width: 150px; padding: 7px 9px; border: 1px solid rgba(0,200,255,0.7); border-radius: 4px; background: rgba(0,10,20,0.82); color: #0ff; font: 12px DenkiChip, monospace; line-height: 1.5; text-shadow: 0 0 5px #0ff;"></div>
 </div>
 <div id="game-info-panel">
   <div id="message-log"></div>
@@ -1319,11 +1319,11 @@ body.controls-swapped #movement-joystick {
   <span class="sh-arrow sh-right">▶</span>
 </div>
 <script type="module">
-import init, * as wasm from './wasm/wasm_dungeonload.js?canvas-scale=1&ui=32&pit=10';
-import { FontLoader, InputManager } from './engine.js';
-import { createDungeonLoadUi } from './ui.js?overlay=16';
-import { readScene, toRuntime, getFloor, locationScene, validateConnections } from './scene-format.js';
-import {pathToPlace} from './campaign.js';
+import init, * as wasm from './wasm/wasm_dungeonload.js?canvas-scale=1&ui=32&pit=10&v=20261106-denki1';
+import { FontLoader, InputManager } from './engine.js?v=20261106-denki1';
+import { createDungeonLoadUi } from './ui.js?overlay=16&v=20261106-denki1';
+import { readScene, toRuntime, getFloor, locationScene, validateConnections } from './scene-format.js?v=20261106-denki1';
+import {pathToPlace} from './campaign.js?v=20261106-denki1';
 window.wasm = wasm;
 const ui = createDungeonLoadUi({ wasm });
 
@@ -1596,8 +1596,8 @@ function enterDungeon() {
 
 async function start() {
   try {
-    await init();
-    await FontLoader.load('GenInterfaceJP', wasm);
+    await init({module_or_path:new URL('./wasm/wasm_dungeonload_bg.wasm?v=20261106-denki1',import.meta.url)});
+    await FontLoader.load('DenkiChip', wasm, {fontUrl:new URL('./fonts/x8y12pxDenkiChip.woff2',import.meta.url).href});
     wasm.init_roguelike();
     ui.applyGamePalette();
 
@@ -2036,9 +2036,9 @@ function renderTinyDungeon() {
         drawTinyTile(ctx, tileIds.stairsUp, drawX, drawY, cell);
       } else if(tile>=10){
         ctx.fillStyle=({10:'#68945c',11:'#355d35',12:'#29668c',13:'#797d78',14:'#b19a73',16:'#a47c56'})[tile]||'#446688';ctx.fillRect(drawX,drawY,cell,cell);
-        if(tile===16){ctx.fillStyle='#fff0b0';ctx.font=(cell*.45)+'px sans-serif';ctx.fillText('IN',drawX+2,drawY+cell*.6);}
+        if(tile===16){ctx.fillStyle='#fff0b0';ctx.font=(cell*.45)+'px DenkiChip, sans-serif';ctx.fillText('IN',drawX+2,drawY+cell*.6);}
       } else if (tile===7||tile===8||tile===9) {
-        ctx.fillStyle=tile===7?'#a46a32':tile===8?'#547b54':'#705c19';ctx.fillRect(drawX,drawY,cell,cell);ctx.fillStyle='#fff0b0';ctx.font=Math.max(9,cell*.25)+'px sans-serif';ctx.fillText(tile===9?'KEY':tile===7?'LOCK':'OPEN',drawX+2,drawY+cell*.6);
+        ctx.fillStyle=tile===7?'#a46a32':tile===8?'#547b54':'#705c19';ctx.fillRect(drawX,drawY,cell,cell);ctx.fillStyle='#fff0b0';ctx.font=Math.max(9,cell*.25)+'px DenkiChip, sans-serif';ctx.fillText(tile===9?'KEY':tile===7?'LOCK':'OPEN',drawX+2,drawY+cell*.6);
       } else if (tile === 5 || tile === 6) {
         ctx.fillStyle = tile === 6 ? '#0a5260' : '#080812';
         ctx.fillRect(drawX, drawY, cell, cell);
@@ -2279,7 +2279,7 @@ function updateDungeon3d() {
 
         if (tile === 6) {
           const warpLabel = createLabelSprite((ctx, width, height) => {
-            ctx.font = 'bold 20px monospace';
+            ctx.font = 'bold 20px DenkiChip, monospace';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.lineWidth = 5;
@@ -2316,12 +2316,12 @@ function updateDungeon3d() {
         const portal=f?.entities.find(e=>e.kind==='portal'&&e.x===x&&e.y===y);
         const roof=new THREE.Mesh(new THREE.ConeGeometry(0.8,0.65,4),new THREE.MeshLambertMaterial({color:portal?.style==='house'?0x9d493c:portal?.style==='town'?0x527aac:0x4b565d}));
         roof.rotation.y=Math.PI/4;roof.position.set(x,1.92,y);scene.add(roof);cubes.push(roof);
-        const label=createLabelSprite((ctx,w,h)=>{ctx.font='bold 20px GenInterfaceJP,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff0b0';ctx.fillText(portal?.label||'ENTER',w/2,h/2);},1.5,0.3);
+        const label=createLabelSprite((ctx,w,h)=>{ctx.font='bold 20px DenkiChip,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff0b0';ctx.fillText(portal?.label||'ENTER',w/2,h/2);},1.5,0.3);
         label.position.set(x,2.5,y);scene.add(label);worldIconSprites.push(label);
       }
       if(tile===7||tile===8||tile===9){
         const word=tile===7?'LOCK':tile===8?'OPEN':'KEY';
-        const label=createLabelSprite((ctx,w,h)=>{ctx.font='bold 22px monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#ffda70';ctx.fillText(word,w/2,h/2);},0.85,0.3);
+        const label=createLabelSprite((ctx,w,h)=>{ctx.font='bold 22px DenkiChip, monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#ffda70';ctx.fillText(word,w/2,h/2);},0.85,0.3);
         label.position.set(x,tile===7?1.8:0.5,y);scene.add(label);worldIconSprites.push(label);
         if(tile===9){const key=new THREE.Mesh(new THREE.TorusGeometry(0.16,0.045,5,12),new THREE.MeshBasicMaterial({color:0xffd44d}));key.position.set(x,0.65,y);scene.add(key);cubes.push(key);}
       }
@@ -2336,7 +2336,7 @@ function updateDungeon3d() {
         const stairLabel = tile === 3 ? 'DOWN' : 'UP';
         const stairColor = tile === 3 ? '#dddd00' : '#00dddd';
         const labelSprite = createLabelSprite((ctx, width, height) => {
-          ctx.font = 'bold 20px monospace';
+          ctx.font = 'bold 20px DenkiChip, monospace';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.lineWidth = 5;
@@ -2435,7 +2435,7 @@ function updateDungeon3d() {
     const enemyName = enemyNameFromWasm || enemyNameFallbacks[data[4]] || 'Enemy';
     if (enemyName) {
       const nameSprite = createLabelSprite((ctx, width, height) => {
-        ctx.font = 'bold 30px sans-serif';
+        ctx.font = 'bold 30px DenkiChip, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.lineWidth = 5;
@@ -2455,7 +2455,7 @@ function updateDungeon3d() {
     }
 
     const hpSprite = createLabelSprite((ctx, width, height) => {
-      ctx.font = 'bold 28px sans-serif';
+      ctx.font = 'bold 28px DenkiChip, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.lineWidth = 5;
@@ -2480,7 +2480,7 @@ function updateDungeon3d() {
   for (let i = 0; i + 4 < damageData.length; i += 5) {
     const ttlRatio = damageData[i + 4] > 0 ? damageData[i + 3] / damageData[i + 4] : 0;
     const damageSprite = createLabelSprite((ctx, width, height) => {
-      ctx.font = 'bold 34px monospace';
+      ctx.font = 'bold 34px DenkiChip, monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.lineWidth = 6;

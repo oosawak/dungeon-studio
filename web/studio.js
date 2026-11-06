@@ -1,5 +1,5 @@
-import {generateScene,readScene,writeScene,replaceSceneBlock,toRuntime,reachableCells,getFloor,locationScene,validateConnections} from './scene-format.js';
-import {createCampaign,createPlace,placeEntrance} from './campaign.js';
+import {generateScene,readScene,writeScene,replaceSceneBlock,toRuntime,reachableCells,getFloor,locationScene,validateConnections} from './scene-format.js?v=20261106-denki1';
+import {createCampaign,createPlace,placeEntrance} from './campaign.js?v=20261106-denki1';
 const pageKind=document.body.dataset.studio||'dungeon';
 const $=id=>document.getElementById(id),canvas=$('map'),ctx=canvas.getContext('2d'),CELL=18;
 let doc=pageKind==='dungeon'?generateScene(42):createCampaign(42);
@@ -32,17 +32,19 @@ function draw(){
  $('floor').replaceChildren();
  for(let i=0;i<=place().lowerFloors.length;i++){const option=document.createElement('option');option.value=i;option.textContent=i===0?'1F':'B'+i+'F';$('floor').append(option);}
  $('floor').value=String(floorIndex);$('initial-keys').value=doc.initialKeys;
- canvas.width=floor().width*CELL;canvas.height=floor().height*CELL;ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 15px sans-serif';
+ canvas.width=floor().width*CELL;canvas.height=floor().height*CELL;ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 15px DenkiChip, sans-serif';
  for(let y=0;y<floor().height;y++)for(let x=0;x<floor().width;x++){
   const c=floor().cells[y][x];ctx.fillStyle=({'#':'#23343d','+':'#94764e','g':'#7ca777','f':'#41694a','~':'#397b9e','^':'#878b82','=':'#c4ad82'})[c]||'#b4c4b5';ctx.fillRect(x*CELL,y*CELL,CELL,CELL);ctx.strokeStyle=c==='#'?'#2a3e47':'#9aad9f';ctx.strokeRect(x*CELL+.5,y*CELL+.5,CELL,CELL);
   if(c==='O'){ctx.fillStyle='#020608';ctx.beginPath();ctx.arc((x+.5)*CELL,(y+.5)*CELL,CELL*.38,0,Math.PI*2);ctx.fill();}
-  if(c==='>'||c==='<'){ctx.fillStyle='#daaf68';ctx.font='bold 16px sans-serif';ctx.fillText(c==='>'?'↓':'↑',(x+.5)*CELL,(y+.65)*CELL);}
+  if(c==='>'||c==='<'){ctx.fillStyle='#daaf68';ctx.font='bold 16px DenkiChip, sans-serif';ctx.fillText(c==='>'?'↓':'↑',(x+.5)*CELL,(y+.65)*CELL);}
   if(c==='+'){ctx.fillStyle='#f5db9a';ctx.fillRect(x*CELL+3,y*CELL+7,CELL-6,4);}
  }
  const colors={spawn:'#175459',exit:'#2644a4',enemy:'#a23843',note:'#785226',key:'#a47c10',portal:'#7a422d'},symbols={spawn:'●',exit:'◆',enemy:'▲',note:'▤',key:'K',portal:'⌂'};
- ctx.font='bold 15px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+ ctx.font='bold 15px DenkiChip, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
  for(const e of floor().entities){ctx.fillStyle=colors[e.kind];ctx.fillText(symbols[e.kind],(e.x+.5)*CELL,(e.y+.5)*CELL);}
  if(selectedNote){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(selectedNote.x*CELL+1,selectedNote.y*CELL+1,CELL-2,CELL-2);ctx.lineWidth=1;}
+ $('generation-title').textContent=({world:'世界の地形を生成',town:'町の地形を生成',interior:'部屋を生成',dungeon:'迷宮を生成'})[place().mapKind];
+ $('generate').textContent=({world:'新しい地形を生成',town:'新しい町を生成',interior:'新しい部屋を生成',dungeon:'新しい迷宮を生成'})[place().mapKind];
  $('title').value=place().title;$('size').textContent=floor().width+' × '+floor().height;$('undo').disabled=!history.length;$('redo').disabled=!future.length;
 }
 function paint(event){

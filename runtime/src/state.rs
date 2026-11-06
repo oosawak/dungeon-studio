@@ -2218,7 +2218,7 @@ pub fn render_canvas(game: &RoguelikeGame, canvas_id: &str, width: i32, height: 
                         if matches!(tile_type, TileType::LockedDoor | TileType::OpenDoor | TileType::KeyPickup | TileType::Grass | TileType::Forest | TileType::Road) {
                             let symbol=match tile_type { TileType::LockedDoor=>"LOCK", TileType::OpenDoor=>"OPEN", TileType::Portal=>"ENTER", _=>"KEY" };
                             ctx.set_fill_style(&"#fff0b0".into());
-                            ctx.set_font(&format!("bold {}px sans-serif", (cell_w*0.22).max(8.0)));
+                            ctx.set_font(&format!("bold {}px DenkiChip, sans-serif", (cell_w*0.22).max(8.0)));
                             let _=ctx.fill_text(symbol,screen_x+cell_w*0.12,screen_y+cell_h*0.6);
                         }
 
@@ -2242,7 +2242,7 @@ pub fn render_canvas(game: &RoguelikeGame, canvas_id: &str, width: i32, height: 
                                     icon_size,
                                     icon_size
                                 ).ok();
-                                ctx.set_font("7px monospace");
+                                ctx.set_font("7px DenkiChip, monospace");
                                 ctx.set_text_align("center");
                                 ctx.set_text_baseline("middle");
                                 ctx.set_stroke_style(&"rgba(0,0,0,0.9)".into());
@@ -2303,7 +2303,7 @@ pub fn render_canvas(game: &RoguelikeGame, canvas_id: &str, width: i32, height: 
                             ).ok();
                             ctx.fill();
                             ctx.set_fill_style(&"#0ff".into());
-                            ctx.set_font("bold 7px monospace");
+                            ctx.set_font("bold 7px DenkiChip, monospace");
                             ctx.set_text_align("center");
                             ctx.set_text_baseline("middle");
                             ctx.fill_text(
@@ -2563,7 +2563,7 @@ pub fn render_canvas(game: &RoguelikeGame, canvas_id: &str, width: i32, height: 
 
                         ctx.save();
                         ctx.set_global_alpha(ttl_ratio.clamp(0.0, 1.0));
-                        ctx.set_font("bold 16px monospace");
+                        ctx.set_font("bold 16px DenkiChip, monospace");
                         ctx.set_text_align("center");
                         ctx.set_stroke_style(&"rgba(0, 0, 0, 0.9)".into());
                         ctx.set_line_width(3.0);
@@ -2583,7 +2583,7 @@ pub fn render_canvas(game: &RoguelikeGame, canvas_id: &str, width: i32, height: 
                 ctx.fill_rect(10.0, 10.0, hp_width, 10.0);
 
                 ctx.set_fill_style(&"#fff".into());
-                ctx.set_font("12px monospace");
+                ctx.set_font("12px DenkiChip, monospace");
                 ctx.fill_text(
                     &format!("HP: {}/{}", game.hp, game.max_hp),
                     15.0,
@@ -2599,7 +2599,7 @@ pub fn render_canvas(game: &RoguelikeGame, canvas_id: &str, width: i32, height: 
                 ctx.fill_rect(165.0, 10.0, mp_width, 10.0);
 
                 ctx.set_fill_style(&"#fff".into());
-                ctx.set_font("12px monospace");
+                ctx.set_font("12px DenkiChip, monospace");
                 ctx.fill_text(
                     &format!("MP: {}/{}", game.mp, game.max_mp),
                     170.0,
@@ -2616,7 +2616,7 @@ pub fn render_canvas(game: &RoguelikeGame, canvas_id: &str, width: i32, height: 
 
                         // HP above
                         ctx.set_fill_style(&"#fff".into());
-                        ctx.set_font("8px monospace");
+                        ctx.set_font("8px DenkiChip, monospace");
                         ctx.set_text_align("center");
                         ctx.fill_text(
                             &format!("HP:{}", enemy.hp),
@@ -2626,7 +2626,7 @@ pub fn render_canvas(game: &RoguelikeGame, canvas_id: &str, width: i32, height: 
 
                         // Name below
                         ctx.set_fill_style(&"#aaf".into());
-                        ctx.set_font("7px monospace");
+                        ctx.set_font("7px DenkiChip, monospace");
                         ctx.set_text_align("center");
                         ctx.fill_text(
                             &enemy.name,

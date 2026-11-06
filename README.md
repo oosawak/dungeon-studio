@@ -1,5 +1,7 @@
 # Dungeon Studio
 
+表示フォントには [でんきチップ（DenkiChip）](https://github.com/hicchicc/x8y12pxDenkiChip) を使用しています。
+
 マップを描き、Markdown に保存し、そのまま2D／3Dのダンジョンで遊ぶブラウザーアプリです。
 
 床・壁・鍵付き扉・落とし穴・階段を描き、開始地点・出口・敵・鍵・メモを配置できます。シード指定の迷宮生成、最大10フロア、Markdown の保存と読み込みに対応します。ゲームの移動・戦闘・状態管理には [rustgames の DUNGEON//LOAD](https://github.com/oosawak/rustgames) を使っています。

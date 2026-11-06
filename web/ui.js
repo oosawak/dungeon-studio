@@ -629,7 +629,7 @@ export function createDungeonLoadUi({ wasm }) {
     ctx.fillStyle = '#0f0';
     ctx.fillRect(playerX * cellW + 2, playerY * cellH + 2, cellW - 4, cellH - 4);
     ctx.fillStyle = '#0ff';
-    ctx.font = '12px monospace';
+    ctx.font = '12px DenkiChip, monospace';
     ctx.fillText(`F${wasm.depth_roguelike()}`, 8, 20);
     lastPlayerTile = currentPlayerTile;
   }
